@@ -3,6 +3,7 @@
 """ """
 import re
 
+
 def tokenize(s):
     """ """
     seps = re.compile(r"\s|\.|,|/|\:|\?|!")
