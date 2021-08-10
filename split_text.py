@@ -4,7 +4,7 @@
 import re
 
 
-def tokenize(s):
+def token_split(s):
     """ """
     seps = re.compile(r"\s|\.|,|/|\:|\?|!")
     tokens = [token for token in re.split(seps, s) if token]
@@ -12,7 +12,7 @@ def tokenize(s):
 
 
 def main():
-    print(tokenize('Aber i bim doch a deitscher!'))
+    print(token_split('Aber i bim doch a deitscher!'))
 
 
 if __name__ == "__main__":

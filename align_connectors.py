@@ -1,8 +1,7 @@
 #      Python: 3.7.6
 #   Kodierung: utf-8
 """ """
-from nltk.tokenize import word_tokenize
-from tqdm import tqdm
+from split_text import token_split
 
 
 class Aligner():
@@ -31,33 +30,35 @@ class Aligner():
         alignments = dict()
         src_file = open(src_path, encoding='utf-8')
         tgt_file = open(tgt_path, encoding='utf-8')
-        tgt_text = [word_tokenize(l.casefold()) for l in tqdm(tgt_file.readlines())]
-        tgt_file.close()
-        line_id = 0
-        for line in tqdm(src_file.readlines()):
-            tokens = word_tokenize(line.casefold())
+        while True:
+            try:
+                src_line = next(src_file).casefold()
+                tgt_line = next(tgt_file).casefold()
+            except StopIteration:
+                break
+            src_tokens = token_split(src_line)
+            tgt_tokens = token_split(tgt_line)
             token_id = 0
-            for token in tokens:
-                actual_token_id = token_id
+            for token in src_tokens:
                 if token in self.connectors:
-                    if (token_id >= len(tgt_text[line_id])
-                        and len(tgt_text[line_id]) > 0):
-                        token_id = len(tgt_text[line_id]) - 1
-                        if tgt_text[line_id][token_id] in ['.', ',',
-                                                           '!', '?']:
-                            token_id -= 1
-                    equivalent = tgt_text[line_id][token_id]
+                    # target line shorter than source line
+                    if token_id >= len(tgt_tokens):
+                        # target line empty
+                        if not tgt_tokens:
+                            equivalent = ''
+                        else:
+                            equivalent = tgt_tokens[-1]
+                    else:
+                        equivalent = tgt_tokens[token_id]
                     if token not in alignments:
                         alignments[token] = {equivalent: 1}
                     elif equivalent not in alignments[token]:
                         alignments[token][equivalent] = 1
                     else:
                         alignments[token][equivalent] += 1
-                if actual_token_id != token_id:
-                    break
                 token_id += 1
-            line_id += 1
         src_file.close()
+        tgt_file.close()
         return alignments
 
 
