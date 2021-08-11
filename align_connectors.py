@@ -2,6 +2,8 @@
 #   Kodierung: utf-8
 """ """
 from split_text import token_split
+import numpy as np
+import pandas as pd
 
 
 class Aligner():
@@ -61,12 +63,28 @@ class Aligner():
         tgt_file.close()
         return alignments
 
+    @staticmethod
+    def result_to_df(d, save=''):
+        """ """
+        df = pd.DataFrame(d)
+        df = df.replace(to_replace=np.nan, value=0)
+        if save:
+            df.to_csv(path_or_buf=save, encoding='utf-8')
+        return df
+
 
 def main():
     obj1 = Aligner({'aber', 'doch', 'jedoch',
                     'allerdings', 'andererseits', 'hingegen'})
-    print(obj1.align('test.de', 'test.en'))
-    print(obj1.align('de-en/europarl-v7.de-en.de', 'de-en/europarl-v7.de-en.en'))
+    test_result = obj1.align('test.de', 'test.en')
+    print(Aligner.result_to_df(test_result))
+# =============================================================================
+#     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
+#                                  'de-en/europarl-v7.de-en.en')
+#     print(Aligner.result_to_df(europarl_result, save='naive.csv'))
+# =============================================================================
+    europarl_df = pd.read_csv('naive.csv', index_col=0)
+    print(europarl_df)
 
 
 if __name__ == "__main__":
