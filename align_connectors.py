@@ -43,19 +43,23 @@ class Aligner():
             token_id = 0
             for token in src_tokens:
                 if token in self.connectors:
-                    # target line shorter than source line
+                    # target line shorter than source line.
                     if token_id >= len(tgt_tokens):
-                        # target line empty
+                        # target line empty.
                         if not tgt_tokens:
                             equivalent = ''
                         else:
                             equivalent = tgt_tokens[-1]
                     else:
                         equivalent = tgt_tokens[token_id]
+                    # connector hasn't been aligned yet.
                     if token not in alignments:
                         alignments[token] = {equivalent: 1}
+                    # connector hasn't been aligned to equivalent yet.
                     elif equivalent not in alignments[token]:
                         alignments[token][equivalent] = 1
+                    # connector has been aligned to equivalent
+                    # before.
                     else:
                         alignments[token][equivalent] += 1
                 token_id += 1
@@ -78,13 +82,12 @@ def main():
                     'allerdings', 'andererseits', 'hingegen'})
     test_result = obj1.align('test.de', 'test.en')
     print(Aligner.result_to_df(test_result))
-# =============================================================================
-#     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
-#                                  'de-en/europarl-v7.de-en.en')
-#     print(Aligner.result_to_df(europarl_result, save='naive.csv'))
-# =============================================================================
+    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
+                                 'de-en/europarl-v7.de-en.en')
+    print(Aligner.result_to_df(europarl_result, save='naive.csv'))
     europarl_df = pd.read_csv('naive.csv', index_col=0)
-    print(europarl_df)
+    for col in europarl_df:
+        print(europarl_df.sort_values(by=col, ascending=False).head(10))
 
 
 if __name__ == "__main__":
