@@ -35,6 +35,6 @@ pip install pandas
 
 
 ### AUTHORS
-Niclas Küken
-Leander Lukas
+Niclas Küken  
+Leander Lukas  
 Sandra Neuhäußer
