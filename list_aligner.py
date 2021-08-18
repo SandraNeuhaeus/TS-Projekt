@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Aug 17 15:44:16 2021
+
+@author: sandra
+"""
+
+import random
+import pandas as pd
+
+from align_connectors import Aligner
+from split_text import token_split
+
+class ListAligner(Aligner):
+    def __init__(self, mode, src_connectors, tgt_connectors):
+        super().__init__(mode, src_connectors)
+        self.tgt_connectors = tgt_connectors
+
+    def align(self, src_path, tgt_path):
+        super().align(src_path, tgt_path)
+        if self.mode == 'list':
+            self.__list_align(src_path, tgt_path)
+
+    def __list_align(src_path, tgt_path):
+        alignments = dict()
+        with open(src_path, encoding='utf-8') as src_file, \
+             open(tgt_path, encoding='utf-8') as tgt_file:
+            while True:
+                try:
+                    src_line = next(src_file).casefold()
+                    tgt_line = next(tgt_file).casefold()
+                except StopIteration:
+                    break
+                src_tokens = token_split(src_line)
+                tgt_tokens = token_split(tgt_line)
+                token_id = 0
+                # It may happen that a target connector is matched twice.
+                for token in src_tokens:
+                    equivalent = ''
+                    if not tgt_tokens:
+                        break
+                    if token in self.src_connectors:
+                        # Set maxdist <- distance to sentence edge
+                        if len(tgt_tokens)-1-token_id >= token_id:
+                            # Distance to left sentence edge is smaller.
+                            maxdist = token_id
+                        else:  # Distance to right sentence edge is smaller.
+                            maxdist = len(tgt_tokens)-1-token_id
+                        # Search target connector.
+                        dist = 0
+                        for dist in range(maxdist+1):
+                            # Look at left and right of token.
+                            if (tgt_tokens[token_id-dist]
+                                    in self.tgt_connectors):
+                                if (tgt_tokens[token_id+dist]
+                                        in self.tgt_connectors):
+                                    # Two tokens with same dist are connectors.
+                                    # This case is not very likely.
+                                    equivalent = random.choice(
+                                            [tgt_tokens[token_id-dist],
+                                             tgt_tokens[token_id+dist]]
+                                            )
+                                    break
+                                else:
+                                    equivalent = tgt_tokens[token_id-dist]
+                                    break
+                            else:
+                                if (tgt_tokens[token_id+dist]
+                                        in self.tgt_connectors):
+                                    equivalent = tgt_tokens[token_id+dist]
+                                    break
+                            dist += 1
+                        # No equivalent found yet.
+                        # If token_id > len(tgt_tokens)-1, set
+                        # dist so that searching starts at end of tgt_tokens.
+                        if dist < 0:
+                            dist = token_id - (len(tgt_tokens)-1)
+                        if token_id - dist > 0:
+                            # Search equivalents at left.
+                            for index in range(token_id-dist, 0, -1):
+                                if tgt_tokens[index] in self.tgt_connectors:
+                                    equivalent = tgt_tokens[index]
+                                    break
+                        elif token_id + dist < len(tgt_tokens):
+                            # Search equivalents at right.
+                            for index in range(token_id+dist, len(tgt_tokens)):
+                                if tgt_tokens[index] in self.tgt_connectors:
+                                    equivalent = tgt_tokens[index]
+                                    break
+                        # Write equivalent to alignments.
+                        # Connector hasn't been aligned yet.
+                        if token not in alignments:
+                            alignments[token] = {equivalent: 1}
+                        # Connector hasn't been aligned to equivalent yet.
+                        elif equivalent not in alignments[token]:
+                            alignments[token][equivalent] = 1
+                        else:
+                            alignments[token][equivalent] += 1
+                    token_id += 1
+        return alignments
+
+
+def main():
+    obj1 = ListAligner(
+            mode='list',
+            src_connectors = {'aber', 'doch', 'jedoch',
+                              'allerdings', 'andererseits', 'hingegen'},
+            tgt_connectors = {'but', 'however', 'though',
+                              'although', 'yet', 'nevertheless',
+                              'nonetheless', 'albeit', 'otherwise',
+                              'whereas', 'again'}
+            )
+    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
+                                 'de-en/europarl-v7.de-en.en')
+    print(ListAligner.result_to_df(europarl_result, save='list_approach.csv'))
+
+    europarl_df = pd.read_csv('list_approach.csv', index_col=0)
+    for col in europarl_df:
+        print(europarl_df.sort_values(by=col, ascending=False).head(10))
