@@ -9,23 +9,28 @@ Created on Tue Aug 17 15:44:16 2021
 import random
 import pandas as pd
 
+from tqdm import tqdm
+
 from align_connectors import Aligner
 from split_text import token_split
 
 class ListAligner(Aligner):
     def __init__(self, mode, src_connectors, tgt_connectors):
-        super().__init__(mode, src_connectors)
+        super().__init__(src_connectors, mode)
+        self.src_connectors = self.connectors
         self.tgt_connectors = tgt_connectors
+        del self.connectors
 
     def align(self, src_path, tgt_path):
         super().align(src_path, tgt_path)
         if self.mode == 'list':
-            self.__list_align(src_path, tgt_path)
+            return self.__list_align(src_path, tgt_path)
 
-    def __list_align(src_path, tgt_path):
+    def __list_align(self, src_path, tgt_path):
         alignments = dict()
         with open(src_path, encoding='utf-8') as src_file, \
              open(tgt_path, encoding='utf-8') as tgt_file:
+            pbar = tqdm(total=1920209)
             while True:
                 try:
                     src_line = next(src_file).casefold()
@@ -74,7 +79,7 @@ class ListAligner(Aligner):
                         # No equivalent found yet.
                         # If token_id > len(tgt_tokens)-1, set
                         # dist so that searching starts at end of tgt_tokens.
-                        if dist < 0:
+                        if maxdist < 0:
                             dist = token_id - (len(tgt_tokens)-1)
                         if token_id - dist > 0:
                             # Search equivalents at left.
@@ -98,6 +103,8 @@ class ListAligner(Aligner):
                         else:
                             alignments[token][equivalent] += 1
                     token_id += 1
+                pbar.update(1)
+            pbar.close()
         return alignments
 
 
@@ -118,3 +125,7 @@ def main():
     europarl_df = pd.read_csv('list_approach.csv', index_col=0)
     for col in europarl_df:
         print(europarl_df.sort_values(by=col, ascending=False).head(10))
+
+
+if __name__ == "__main__":
+    main()
