@@ -8,11 +8,15 @@ Created on Tue Aug 17 15:44:16 2021
 
 import random
 import pandas as pd
+import logging
 
 from tqdm import tqdm
 
 from align_connectors import Aligner
 from split_text import token_split
+
+logging.basicConfig(filename="info.log",
+                    level=logging.DEBUG)
 
 class ListAligner(Aligner):
     def __init__(self, mode, src_connectors, tgt_connectors):
@@ -30,6 +34,7 @@ class ListAligner(Aligner):
         alignments = dict()
         with open(src_path, encoding='utf-8') as src_file, \
              open(tgt_path, encoding='utf-8') as tgt_file:
+            lineno = 1
             pbar = tqdm(total=1920209)
             while True:
                 try:
@@ -102,7 +107,10 @@ class ListAligner(Aligner):
                             alignments[token][equivalent] = 1
                         else:
                             alignments[token][equivalent] += 1
+                        if not equivalent:
+                            logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
+                lineno += 1
                 pbar.update(1)
             pbar.close()
         return alignments
