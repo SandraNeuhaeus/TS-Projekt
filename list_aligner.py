@@ -16,13 +16,14 @@ from align_connectors import Aligner
 from split_text import token_split
 
 logging.basicConfig(filename="info.log",
-                    level=logging.DEBUG)
+                    level=logging.WARNING)
 
 class ListAligner(Aligner):
     def __init__(self, mode, src_connectors, tgt_connectors):
         super().__init__(src_connectors, mode)
         self.src_connectors = self.connectors
         self.tgt_connectors = tgt_connectors
+        self.alignments = dict()
         del self.connectors
 
     def align(self, src_path, tgt_path):
@@ -31,7 +32,6 @@ class ListAligner(Aligner):
             return self.__list_align(src_path, tgt_path)
 
     def __list_align(self, src_path, tgt_path):
-        alignments = dict()
         with open(src_path, encoding='utf-8') as src_file, \
              open(tgt_path, encoding='utf-8') as tgt_file:
             lineno = 1
@@ -81,7 +81,6 @@ class ListAligner(Aligner):
                                     equivalent = tgt_tokens[token_id+dist]
                                     break
                             dist += 1
-                        # No equivalent found yet.
                         # If token_id > len(tgt_tokens)-1, set
                         # dist so that searching starts at end of tgt_tokens.
                         if maxdist < 0:
@@ -98,22 +97,27 @@ class ListAligner(Aligner):
                                 if tgt_tokens[index] in self.tgt_connectors:
                                     equivalent = tgt_tokens[index]
                                     break
-                        # Write equivalent to alignments.
-                        # Connector hasn't been aligned yet.
-                        if token not in alignments:
-                            alignments[token] = {equivalent: 1}
-                        # Connector hasn't been aligned to equivalent yet.
-                        elif equivalent not in alignments[token]:
-                            alignments[token][equivalent] = 1
-                        else:
-                            alignments[token][equivalent] += 1
+                        # Add equivalent to alignments.
+                        self.note_match(token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
                 lineno += 1
                 pbar.update(1)
             pbar.close()
-        return alignments
+        return self.alignments
+
+    def note_match(self, connector, equivalent):
+        """ """
+        if connector not in self.alignments:
+            self.alignments[connector] = {equivalent: 1}
+            # connector hasn't been aligned to equivalent yet.
+        elif equivalent not in self.alignments[connector]:
+            self.alignments[connector][equivalent] = 1
+            # connector has been aligned to equivalent
+            # before.
+        else:
+            self.alignments[connector][equivalent] += 1
 
 
 def main():
