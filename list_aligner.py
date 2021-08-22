@@ -206,6 +206,7 @@ class ListAligner(Aligner):
 
 
 def main():
+    # Alignment.
     obj1 = ListAligner(
             mode='list',
             src_connectors={'aber', 'doch', 'jedoch',
@@ -224,6 +225,7 @@ def main():
             )
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
+    # Save results.
     ListAligner.result_to_df(europarl_result,
                              save='results/list_approach.csv')
 
