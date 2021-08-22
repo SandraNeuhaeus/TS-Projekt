@@ -82,11 +82,9 @@ def main():
                     'allerdings', 'andererseits', 'hingegen'})
     test_result = obj1.align('test.de', 'test.en')
     print(Aligner.result_to_df(test_result))
-# =============================================================================
-#     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
-#                                  'de-en/europarl-v7.de-en.en')
-#     print(Aligner.result_to_df(europarl_result, save='naive.csv'))
-# =============================================================================
+    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
+                                 'de-en/europarl-v7.de-en.en')
+    print(Aligner.result_to_df(europarl_result, save='naive.csv'))
     europarl_df = pd.read_csv('naive.csv', index_col=0)
     for col in europarl_df:
         print(europarl_df.sort_values(by=col, ascending=False).head(10))
