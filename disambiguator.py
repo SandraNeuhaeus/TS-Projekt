@@ -35,25 +35,26 @@ class Disambiguator():
                            being put on the drop_list.
 
         Returns:
-            list of strings: drop_list containing all indices/candidates that 
+            list of strings: drop_list containing all indices/candidates that
                              are to be dropped from alignments_dataframe.
         """
         if self.mode == 'pattern':
-            return self.__quick_disamb(tgt_path, candidate_list, c_filter)
+            return self.__pattern_disamb(tgt_path, candidate_list, c_filter,
+                                         p_filter)
 
     def __pattern_disamb(self, tgt_path, candidate_list, c_filter, p_filter):
         drop_list = []
         try:
-            with io.open(tgt_path, mode="r", encoding="utf-8") as txt2_file:
+            with io.open(tgt_path, mode="r", encoding="utf-8") as txt_file:
                 for candidate in candidate_list:
-                    if self.__check_context(candidate, txt2_file, c_filter):
+                    if self.__check_context(candidate, txt_file, c_filter):
                         continue
                     else:
                         drop_list.append(candidate)
-            with io.open(tgt_path, mode="r", encoding="utf-8") as txt1_file:
+                txt_file.seek(0)
                 for candidate in candidate_list:
                     if (self.__punish_patterns([r"[a-zA-Z] %s "], candidate,
-                                               txt1_file, p_filter)):
+                                               txt_file, p_filter)):
                         drop_list.append(candidate)
             return drop_list
         except IOError:
@@ -130,23 +131,24 @@ class Disambiguator():
                     txt_file.seek(0)
                     for line in txt_file:
                         stripped_line = line.strip()
-                        if re.search(r". %s" % connector, stripped_line,
+                        if re.search(r". %s ." % connector, stripped_line,
                                      re.IGNORECASE):
                             connector_occs.append(re.findall(
-                                r". %s" % connector, stripped_line,
+                                r". %s ." % connector, stripped_line,
                                 re.IGNORECASE)[0])
                     con_total_occs[connector] = len(connector_occs)
                     for i in range(0, len(connector_occs)):
-                        if re.search(r"[a-zA-Zß0-9] %s" % connector,
-                                     connector_occs[i]):
+                        if re.search(r"[a-zA-Zß0-9\(\)\'\"öüä ] %s [a-zA-Z0-9\(öüäÄÜÖ\)]"
+                                     % connector, connector_occs[i]):
                             not_connectors[connector].append(i)
             return (not_connectors, con_total_occs)
         except IOError:
             logging.basicConfig(level=logging.ERROR)
             logging.error("ERROR: Could not find the given file")
 
+
 def main():
-    """Drop non-connector rows from alignments_df"""
+    """Drop non-connector rows from alignments_df."""
     logging.basicConfig(level=logging.DEBUG)
     disa = Disambiguator(pd.read_csv("naive.csv"))
     logging.debug("Finished loading")
@@ -159,12 +161,12 @@ def main():
     dropped.to_csv('dropped.csv')
     # print(dropped_sorted)
     # logging.debug(str(dropped_sorted.shape))
-    """Create non_connector_dictionary"""
+    """Create non_connector_dictionary."""
     non_con = Disambiguator.create_non_con_dict(['aber', 'doch', 'jedoch',
                                                  'allerdings', 'andererseits',
                                                  'hingegen'],
                                                 r"europarl-v7.de-en.de")
-    # print(non_con[0])
+    print(non_con[0])
 
 
 if __name__ == "__main__":
