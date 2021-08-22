@@ -1,16 +1,23 @@
 #      Python: 3.7.6
 #   Kodierung: utf-8
-""" """
+"""Dieses Modul fasst Funktionalitäten zur Alignierung von Wörtern zusammen.
+
+Es soll den ersten Schritt des Modulprojekts erfüllen.
+
+"""
 from split_text import token_split
 import numpy as np
 import pandas as pd
 
 
 class Aligner():
-    """ """
+    """Produces mappings from certain words in one text to another text."""
 
     def __init__(self, connectors, mode='naive'):
+        #: list of str: contains the tokens supposedly contained in the source
+        #               that are mapped to tokens in the target text.
         self.connectors = connectors
+        #: obj:'str', optional: determines the alignment algorithm applied.
         self.mode = mode
 
     def align(self, src_path, tgt_path):
@@ -28,7 +35,20 @@ class Aligner():
             return self.__naive_align(src_path, tgt_path)
 
     def __naive_align(self, src_path, tgt_path):
-        """ """
+        """Maps source text tokens (in self.connectors) to target text tokens.
+
+        Args:
+            src_path(str): see Aligner.align().
+            tgt_path(str): see Aligner.align().
+
+        Returns:
+            alignments(dict): tokens from the source text (str) as keys and
+                              dictionaries (dict) as values, that have the
+                              matched tokens from the target text (str) for
+                              keys and the corresponding number of matches
+                              (int) for values.
+
+        """
         alignments = dict()
         src_file = open(src_path, encoding='utf-8')
         tgt_file = open(tgt_path, encoding='utf-8')
@@ -69,7 +89,16 @@ class Aligner():
 
     @staticmethod
     def result_to_df(d, save=''):
-        """ """
+        """Creates a pandas.DataFrame from a nested dictionary.
+
+        Args:
+            d(dict): a nested dictionary with immutable keys and dictionaries
+                     (dict) as values.
+            save(:obj:`str`, optional): path to the .csv-file the DataFrame
+                                        can optionally be saved in, if save is
+                                        evaluated as True.
+
+        """
         df = pd.DataFrame(d)
         df = df.replace(to_replace=np.nan, value=0)
         if save:
