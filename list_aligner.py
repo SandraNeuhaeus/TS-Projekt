@@ -1,9 +1,11 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Aug 17 15:44:16 2021
+# Python 3.6.12
 
-@author: sandra
+"""
+Aligns the connectors from two text files using lists of connectors.
+
+Specified source connectors are matched with specified target
+connectors using their distance in the parallel sentences.
 """
 
 import pandas as pd
@@ -16,6 +18,7 @@ from split_text import token_split
 
 logging.basicConfig(filename="results/info.log",
                     level=logging.INFO)
+
 
 class ListAligner(Aligner):
     def __init__(self, mode, src_connectors, tgt_connectors):
@@ -86,7 +89,7 @@ class ListAligner(Aligner):
         with open(src_path, encoding='utf-8') as src_file, \
              open(tgt_path, encoding='utf-8') as tgt_file:
             lineno = 1
-            pbar = tqdm(total=1920209)
+            pbar = tqdm(total=1920209, desc='Matching connectors')
             while True:
                 try:
                     src_line = next(src_file).casefold()
@@ -139,7 +142,7 @@ class ListAligner(Aligner):
             last = sent_length
         # Annahme: entry als Startpunkt (muss im Fenster liegen)
         # a = negative Größe des Slices (für linke Intervallgrenze)
-        for a in range(-1,-(max_window+1),-1):
+        for a in range(-1, -(max_window+1), -1):
             pos = iter(range(1, frame))
             non_pos = iter(range(0, -frame, -1))
             # Geht's links noch weiter?
@@ -155,7 +158,9 @@ class ListAligner(Aligner):
                     else:
                         if entry + b <= last:
                             if entry + b + a >= first:
-                                snip = ' '.join(tokens[entry+b+a:entry+b]).casefold()
+                                snip = ' '.join(
+                                        tokens[entry+b+a:entry+b]
+                                        ).casefold()
                                 if snip in self.tgt_connectors:
                                     return snip
                         else:
@@ -170,7 +175,9 @@ class ListAligner(Aligner):
                     else:
                         if entry + b + a >= first:
                             if entry + b <= last:
-                                snip = ' '.join(tokens[entry+b+a:entry+b]).casefold()
+                                snip = ' '.join(
+                                        tokens[entry+b+a:entry+b]
+                                        ).casefold()
                                 if snip in self.tgt_connectors:
                                     return snip
                         else:
@@ -182,7 +189,7 @@ class ListAligner(Aligner):
     def __note_match(self, connector, equivalent):
         """Enters new found matches to 'self.alignments'.
 
-        Agrs:
+        Args:
             connector(str): Source connector.
             equivalent(str): Found target connector.
 
@@ -201,27 +208,28 @@ class ListAligner(Aligner):
 def main():
     obj1 = ListAligner(
             mode='list',
-            src_connectors = {'aber', 'doch', 'jedoch',
-                              'allerdings', 'andererseits', 'hingegen'},
-            tgt_connectors = {'but', 'however', 'though',
-                              'although', 'yet', 'nevertheless',
-                              'nonetheless', 'albeit', 'otherwise',
-                              'whereas', 'again', 'still', 'instead',
-                              'alternatively', 'after all', 'then again',
-                              'there again', 'by contrast', 'on the contrary',
-                              'on the other hand', 'at the same time',
-                              'even so', 'even if', 'by the same token',
-                              'on a different note', 'on the other side',
-                              'on the downside', 'having said this',
-                              'having said that', 'apart from that'}
+            src_connectors={'aber', 'doch', 'jedoch',
+                            'allerdings', 'andererseits', 'hingegen'},
+            tgt_connectors={'but', 'however', 'though',
+                            'although', 'yet', 'nevertheless',
+                            'nonetheless', 'albeit', 'otherwise',
+                            'whereas', 'again', 'still', 'instead',
+                            'alternatively', 'after all', 'then again',
+                            'there again', 'by contrast', 'on the contrary',
+                            'on the other hand', 'at the same time',
+                            'even so', 'even if', 'by the same token',
+                            'on a different note', 'on the other side',
+                            'on the downside', 'having said this',
+                            'having said that', 'apart from that'}
             )
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    print(ListAligner.result_to_df(europarl_result,
-                                   save='results/list_approach2.csv'))
+    ListAligner.result_to_df(europarl_result,
+                             save='results/list_approach.csv')
 
-    europarl_df = pd.read_csv('results/list_approach2.csv', index_col=0)
-    with open('results/results_list_approach.txt', 'w', encoding='utf-8') as results:
+    europarl_df = pd.read_csv('results/list_approach.csv', index_col=0)
+    with open('results/results_list_approach.txt',
+              'w', encoding='utf-8') as results:
         print('Top 10 of every connector', file=results, end='\n\n')
         for col in europarl_df:
             print(europarl_df[col].sort_values(ascending=False).head(10),
