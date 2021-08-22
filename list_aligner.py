@@ -6,7 +6,6 @@ Created on Tue Aug 17 15:44:16 2021
 @author: sandra
 """
 
-import random
 import pandas as pd
 import logging
 
@@ -15,23 +14,75 @@ from tqdm import tqdm
 from align_connectors import Aligner
 from split_text import token_split
 
-logging.basicConfig(filename="info.log",
-                    level=logging.WARNING)
+logging.basicConfig(filename="results/info.log",
+                    level=logging.INFO)
 
 class ListAligner(Aligner):
     def __init__(self, mode, src_connectors, tgt_connectors):
         super().__init__(src_connectors, mode)
         self.src_connectors = self.connectors
+        del self.connectors
         self.tgt_connectors = tgt_connectors
         self.alignments = dict()
-        del self.connectors
 
-    def align(self, src_path, tgt_path):
+    def align(self, src_path, tgt_path, frame=33, start=-16, max_window=None):
+        """Aims to align the connectors from two text files.
+
+        Args:
+            src_path(str): directory of the file in the source language (the
+                           same as self.connectors).
+            tgt_path(str): directory of the target file, where we're trying to
+                           find equivalents of the connectors in the source
+                           file.
+            frame(int): Size of the frame in which an equivalent in searched.
+            start(int): A negative value that states the position of the first
+                        token in the frame relative to the source connector.
+            max_window(int): Maximum connector length that is searched for. If
+                             None, the maximum length is computed from
+                             'self.tgt_connectors'.
+
+        """
         super().align(src_path, tgt_path)
+        if not max_window:
+            max_window = self.__compute_maxwindow()
         if self.mode == 'list':
-            return self.__list_align(src_path, tgt_path)
+            return self.__list_align(
+                    src_path, tgt_path,
+                    frame, start, max_window
+                    )
 
-    def __list_align(self, src_path, tgt_path):
+    def __compute_maxwindow(self):
+        """Computes the maximum target connector length."""
+        max_window = 1
+        for connector in self.tgt_connectors:
+            window = len(connector.split(" "))
+            if window > max_window:
+                max_window = window
+        return max_window
+
+    def __list_align(self, src_path, tgt_path, frame, start, max_window):
+        """Uses a list of target connectors to align the source connectors.
+
+        Args:
+            src_path(str): directory of the file in the source language (the
+                           same as self.connectors).
+            tgt_path(str): directory of the target file, where we're trying to
+                           find equivalents of the connectors in the source
+                           file.
+            frame(int): Size of the frame in which an equivalent in searched.
+            start(int): A negative value that states the position of the first
+                        token in the frame relative to the source connector.
+            max_window(int): Maximum connector length that is searched for.
+
+        Returns:
+            dict: The aligned connectors. Has the form:
+                {<source_connector1>: {
+                        <target_connector1>: <number_of_matches>,
+                        ...}
+                ...
+                }
+
+        """
         with open(src_path, encoding='utf-8') as src_file, \
              open(tgt_path, encoding='utf-8') as tgt_file:
             lineno = 1
@@ -47,58 +98,13 @@ class ListAligner(Aligner):
                 token_id = 0
                 # It may happen that a target connector is matched twice.
                 for token in src_tokens:
-                    equivalent = ''
-                    if not tgt_tokens:
-                        break
                     if token in self.src_connectors:
-                        # Set maxdist <- distance to sentence edge
-                        if len(tgt_tokens)-1-token_id >= token_id:
-                            # Distance to left sentence edge is smaller.
-                            maxdist = token_id
-                        else:  # Distance to right sentence edge is smaller.
-                            maxdist = len(tgt_tokens)-1-token_id
-                        # Search target connector.
-                        dist = 0
-                        for dist in range(maxdist+1):
-                            # Look at left and right of token.
-                            if (tgt_tokens[token_id-dist]
-                                    in self.tgt_connectors):
-                                if (tgt_tokens[token_id+dist]
-                                        in self.tgt_connectors):
-                                    # Two tokens with same dist are connectors.
-                                    # This case is not very likely.
-                                    equivalent = random.choice(
-                                            [tgt_tokens[token_id-dist],
-                                             tgt_tokens[token_id+dist]]
-                                            )
-                                    break
-                                else:
-                                    equivalent = tgt_tokens[token_id-dist]
-                                    break
-                            else:
-                                if (tgt_tokens[token_id+dist]
-                                        in self.tgt_connectors):
-                                    equivalent = tgt_tokens[token_id+dist]
-                                    break
-                            dist += 1
-                        # If token_id > len(tgt_tokens)-1, set
-                        # dist so that searching starts at end of tgt_tokens.
-                        if maxdist < 0:
-                            dist = token_id - (len(tgt_tokens)-1)
-                        if token_id - dist > 0:
-                            # Search equivalents at left.
-                            for index in range(token_id-dist, 0, -1):
-                                if tgt_tokens[index] in self.tgt_connectors:
-                                    equivalent = tgt_tokens[index]
-                                    break
-                        elif token_id + dist < len(tgt_tokens):
-                            # Search equivalents at right.
-                            for index in range(token_id+dist, len(tgt_tokens)):
-                                if tgt_tokens[index] in self.tgt_connectors:
-                                    equivalent = tgt_tokens[index]
-                                    break
+                        equivalent = self.__search_equivalent(
+                                tgt_tokens, token_id,
+                                frame, start, max_window
+                                )
                         # Add equivalent to alignments.
-                        self.note_match(token, equivalent)
+                        self.__note_match(token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
@@ -107,8 +113,80 @@ class ListAligner(Aligner):
             pbar.close()
         return self.alignments
 
-    def note_match(self, connector, equivalent):
-        """ """
+    def __search_equivalent(self, tokens, entry, frame, start, max_window):
+        """Searches for connectors from 'self.tgt_connectors' in a token list.
+
+        Args:
+            tokens(list): A tokenized sentence.
+            entry(int): Index of the connector from the source sentence.
+            frame(int): Size of the frame in which an equivalent in searched.
+            start(int): A negative value that states the position of the first
+                        token in the frame relative to 'entry'.
+            max_window(int): Maximum connector length that is searched for.
+
+        Returns:
+            str: The found equivalent. If no equivalent is found, empty string.
+
+        """
+        if not tokens:
+            return ''
+        first = entry + start
+        last = entry + start + frame
+        sent_length = len(tokens)
+        if first < 0:
+            first = 0
+        if last > sent_length:
+            last = sent_length
+        # Annahme: entry als Startpunkt (muss im Fenster liegen)
+        # a = negative Größe des Slices (für linke Intervallgrenze)
+        for a in range(-1,-(max_window+1),-1):
+            pos = iter(range(1, frame))
+            non_pos = iter(range(0, -frame, -1))
+            # Geht's links noch weiter?
+            left = True
+            # Geht's rechts noch weiter?
+            right = True
+            while True:
+                if right:
+                    try:
+                        b = next(pos)
+                    except StopIteration:
+                        right = False
+                    else:
+                        if entry + b <= last:
+                            if entry + b + a >= first:
+                                snip = ' '.join(tokens[entry+b+a:entry+b]).casefold()
+                                if snip in self.tgt_connectors:
+                                    return snip
+                        else:
+                            right = False
+                elif not left:
+                    break
+                if left:
+                    try:
+                        b = next(non_pos)
+                    except StopIteration:
+                        left = False
+                    else:
+                        if entry + b + a >= first:
+                            if entry + b <= last:
+                                snip = ' '.join(tokens[entry+b+a:entry+b]).casefold()
+                                if snip in self.tgt_connectors:
+                                    return snip
+                        else:
+                            left = False
+                elif not right:
+                    break
+        return ''
+
+    def __note_match(self, connector, equivalent):
+        """Enters new found matches to 'self.alignments'.
+
+        Agrs:
+            connector(str): Source connector.
+            equivalent(str): Found target connector.
+
+        """
         if connector not in self.alignments:
             self.alignments[connector] = {equivalent: 1}
             # connector hasn't been aligned to equivalent yet.
@@ -128,15 +206,26 @@ def main():
             tgt_connectors = {'but', 'however', 'though',
                               'although', 'yet', 'nevertheless',
                               'nonetheless', 'albeit', 'otherwise',
-                              'whereas', 'again'}
+                              'whereas', 'again', 'still', 'instead',
+                              'alternatively', 'after all', 'then again',
+                              'there again', 'by contrast', 'on the contrary',
+                              'on the other hand', 'at the same time',
+                              'even so', 'even if', 'by the same token',
+                              'on a different note', 'on the other side',
+                              'on the downside', 'having said this',
+                              'having said that', 'apart from that'}
             )
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    print(ListAligner.result_to_df(europarl_result, save='list_approach.csv'))
+    print(ListAligner.result_to_df(europarl_result,
+                                   save='results/list_approach2.csv'))
 
-    europarl_df = pd.read_csv('list_approach.csv', index_col=0)
-    for col in europarl_df:
-        print(europarl_df.sort_values(by=col, ascending=False).head(10))
+    europarl_df = pd.read_csv('results/list_approach2.csv', index_col=0)
+    with open('results/results_list_approach.txt', 'w', encoding='utf-8') as results:
+        print('Top 10 of every connector', file=results, end='\n\n')
+        for col in europarl_df:
+            print(europarl_df[col].sort_values(ascending=False).head(10),
+                  file=results, end='\n\n')
 
 
 if __name__ == "__main__":
