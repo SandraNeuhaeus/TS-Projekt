@@ -37,6 +37,40 @@ class Aligner():
     def __naive_align(self, src_path, tgt_path):
         """Maps source text tokens (in self.connectors) to target text tokens.
 
+        In the general case tokens with the same index are matched:
+
+            src_tokens: [-, -, =, -]
+                               |
+                               V
+            tgt_tokens: [-, -, =, -]
+
+        When there are less tgt_tokens than src_tokens and there is no token
+        in the tgt_tokens at the index of the connector we distinguish two
+        cases:
+        1.: there are no tgt_tokens and we align with the empty string:
+
+            src_tokens: [-, -, =, -]
+                              /
+                             /
+                            /
+                           /
+                          /
+                         V
+            tgt_tokens: [ε]
+
+        2.: tgt_tokens contains tokens but there is no token at the index of
+            the connector. In this case we align with the token furthest to
+            the right:
+
+            src_tokens: [-, -, -, =]
+                                 /
+                                /
+                               /
+                              /
+                             /
+                            V
+            tgt_tokens: [-, =]
+        
         Args:
             src_path(str): see Aligner.align().
             tgt_path(str): see Aligner.align().
