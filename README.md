@@ -9,7 +9,7 @@ We used sentence-aligned parallel texts from the Europarl corpus (https://www.st
 ...
 
 ### REQUIREMENTS
-The program is tested with python 3.7.6., 3.6.12 and 3.8.10.
+The program is tested with python  3.6.12, 3.7.6. and 3.8.10.
 
 
 #### Download corpus
