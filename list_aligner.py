@@ -16,9 +16,6 @@ from tqdm import tqdm
 from align_connectors import Aligner
 from split_text import token_split
 
-logging.basicConfig(filename="results/info.log",
-                    level=logging.INFO)
-
 
 class ListAligner(Aligner):
     def __init__(self, mode, src_connectors, tgt_connectors):
@@ -206,7 +203,15 @@ class ListAligner(Aligner):
 
 
 def main():
-    # Alignment.
+    """Starts alignment.
+
+    Uses multi-word target connectors in the first run, in the second
+    run only one-word target connectors.
+
+    """
+    logging.basicConfig(filename="results/no_matches.log",
+                    level=logging.INFO)
+
     obj1 = ListAligner(
             mode='list',
             src_connectors={'aber', 'doch', 'jedoch',
@@ -223,6 +228,7 @@ def main():
                             'on the downside', 'having said this',
                             'having said that', 'apart from that'}
             )
+    # Alignment with multi-word target connectors.
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
     # Save results.
@@ -230,13 +236,28 @@ def main():
                              save='results/list_approach.csv')
 
     europarl_df = pd.read_csv('results/list_approach.csv', index_col=0)
-    with open('results/results_list_approach.txt',
+    with open('results/list_approach.txt',
               'w', encoding='utf-8') as results:
         print('Top 10 of every connector', file=results, end='\n\n')
         for col in europarl_df:
             print(europarl_df[col].sort_values(ascending=False).head(10),
                   file=results, end='\n\n')
 
+    # Alignment with one-word target connectors.
+    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
+                                 'de-en/europarl-v7.de-en.en',
+                                 max_window=1)
+    # Save results.
+    ListAligner.result_to_df(europarl_result,
+                             save='results/list_approach_oneword.csv')
+
+    europarl_df = pd.read_csv('results/list_approach_oneword.csv', index_col=0)
+    with open('results/list_approach_oneword.txt',
+              'w', encoding='utf-8') as results:
+        print('Top 10 of every connector', file=results, end='\n\n')
+        for col in europarl_df:
+            print(europarl_df[col].sort_values(ascending=False).head(10),
+                  file=results, end='\n\n')
 
 if __name__ == "__main__":
     main()
