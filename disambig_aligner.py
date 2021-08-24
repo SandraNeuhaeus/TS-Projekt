@@ -1,6 +1,8 @@
 # Python: 3.7.6
 # Kodierung: utf-8
-"""
+"""Dieses Modul verwendet die Ergebnisse aus Schritt 2 für Schritt 1.
+
+Alignierung bei Aussonderung von Nicht-Konnektor-Lesarten.
 
 """
 from disambiguator import Disambiguator as da
