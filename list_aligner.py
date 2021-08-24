@@ -44,14 +44,14 @@ class ListAligner(Aligner):
         """
         super().align(src_path, tgt_path)
         if not max_window:
-            max_window = self.__compute_maxwindow()
+            max_window = self._compute_maxwindow()
         if self.mode == 'list':
             return self.__list_align(
                     src_path, tgt_path,
                     frame, start, max_window
                     )
 
-    def __compute_maxwindow(self):
+    def _compute_maxwindow(self):
         """Computes the maximum target connector length."""
         max_window = 1
         for connector in self.tgt_connectors:
@@ -99,12 +99,12 @@ class ListAligner(Aligner):
                 # It may happen that a target connector is matched twice.
                 for token in src_tokens:
                     if token in self.src_connectors:
-                        equivalent = self.__search_equivalent(
+                        equivalent = self._search_equivalent(
                                 tgt_tokens, token_id,
                                 frame, start, max_window
                                 )
                         # Add equivalent to alignments.
-                        self.__note_match(token, equivalent)
+                        self._note_match(token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
@@ -113,13 +113,13 @@ class ListAligner(Aligner):
             pbar.close()
         return self.alignments
 
-    def __search_equivalent(self, tokens, entry, frame, start, max_window):
+    def _search_equivalent(self, tokens, entry, frame, start, max_window):
         """Searches for connectors from 'self.tgt_connectors' in a token list.
 
         Args:
             tokens(list): A tokenized sentence.
             entry(int): Index of the connector from the source sentence.
-            frame(int): Size of the frame in which an equivalent in searched.
+            frame(int): Size of the frame in which an equivalent is searched.
             start(int): A negative value that states the position of the first
                         token in the frame relative to 'entry'.
             max_window(int): Maximum connector length that is searched for.
@@ -183,7 +183,7 @@ class ListAligner(Aligner):
                     break
         return ''
 
-    def __note_match(self, connector, equivalent):
+    def _note_match(self, connector, equivalent):
         """Enters new found matches to 'self.alignments'.
 
         Args:
