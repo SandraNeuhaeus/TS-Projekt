@@ -135,6 +135,7 @@ class Aligner():
         """
         df = pd.DataFrame(d)
         df = df.replace(to_replace=np.nan, value=0)
+        df = df.astype(int)
         if save:
             df.to_csv(path_or_buf=save, encoding='utf-8')
         return df
