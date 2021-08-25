@@ -14,12 +14,12 @@ class Disambiguator():
     """Does stuff."""
 
     def __init__(self, alignments_df,
-                 patterns=[r", %s", r"%s,"], mode="pattern"):
+                 patterns=[r", %s", r"%s,"]):
         self.alignments_df = alignments_df
         self.patterns = patterns
-        self.mode = mode
 
-    def disambiguate(self, tgt_path, candidate_list, c_filter=10, p_filter=2):
+    def disambiguate(self, tgt_path, candidate_list,
+                     c_filter=10, p_filter=2, mode="pattern"):
         """Return a drop_list containing all indices/candidates.
 
         Args:
@@ -38,7 +38,7 @@ class Disambiguator():
             list of strings: drop_list containing all indices/candidates that
                              are to be dropped from alignments_dataframe.
         """
-        if self.mode == 'pattern':
+        if mode == 'pattern':
             return self.__pattern_disamb(tgt_path, candidate_list, c_filter,
                                          p_filter)
 
@@ -133,13 +133,19 @@ class Disambiguator():
                         stripped_line = line.strip()
                         if re.search(r". %s ." % connector, stripped_line,
                                      re.IGNORECASE):
-                            connector_occs.append(re.findall(
-                                r". %s ." % connector, stripped_line,
-                                re.IGNORECASE)[0])
+                            connector_occs.append(
+                                    re.findall(
+                                        r". %s ." % connector, stripped_line,
+                                        re.IGNORECASE)[0])
+                        elif re.search(r"%s" % str(connector).capitalize(),
+                                       stripped_line):
+                            connector_occs.append(str(', ' + re.findall(
+                                r"%s" % str(connector).capitalize(),
+                                stripped_line)[0] + ' ,'))
                     con_total_occs[connector] = len(connector_occs)
                     for i in range(0, len(connector_occs)):
                         if re.search(r"[a-zA-Zß0-9\(\)\'\"öüä ] %s [a-zA-Z0-9\(öüäÄÜÖ\)]"
-                                     % connector, connector_occs[i]):
+                                     % str(connector), connector_occs[i]):
                             not_connectors[connector].append(i)
             return (not_connectors, con_total_occs)
         except IOError:
@@ -157,7 +163,7 @@ def main():
                                                can_list, 21))
     dropped_sorted = dropped.sort_values("andererseits", "index",
                                          ascending=False)
-    logging.debug("Finished disamb")
+    logging.debug("Finished disambiguating")
     dropped.to_csv('dropped.csv')
     # print(dropped_sorted)
     # logging.debug(str(dropped_sorted.shape))
