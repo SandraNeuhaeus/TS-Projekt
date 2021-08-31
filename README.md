@@ -9,7 +9,7 @@ We used sentence-aligned parallel texts from the Europarl corpus (https://www.st
 ...
 
 ### REQUIREMENTS
-The program is tested with python 3.7.6.
+The program is tested with python 3.7.6., 3.6.12 and 3.8.10.
 
 
 #### Download corpus
@@ -21,13 +21,23 @@ Consists of two files
 
 
 #### Install Pandas
-With anaconda/miniconda:
+With anaconda/miniconda or with `pip`:
 ```
 conda install pandas
-```
-or with `pip`:
-```
 pip install pandas
+```
+#### Install NumPy
+With anaconda/miniconda or with `pip`:
+```
+conda install numpy
+pip install numpy
+```
+
+#### Install tqdm
+With anaconda or with `pip`:
+```
+conda install -c anaconda tqdm
+pip install tqdm
 ```
 
 ### USAGE
