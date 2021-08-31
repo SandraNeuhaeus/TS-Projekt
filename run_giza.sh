@@ -1,4 +1,3 @@
-mkdir giza-pp/europarl_data
 cd giza-pp/GIZA++-v2
 ./plain2snt.out '../europarl_data/Source' '../europarl_data/Target'
 cd ../mkcls-v2
