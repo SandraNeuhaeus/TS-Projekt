@@ -19,8 +19,8 @@ def tokenize_file(path, path_out, language, linenumber):
 if __name__ == '__main__':
     SRC_FILE = 'de-en/europarl-v7.de-en.de'
     TGT_FILE = 'de-en/europarl-v7.de-en.en'
-    SRC_FILE_TOKENIZED = 'giza-pp/giza_europarl/tokenized_europarl-v7.de-en.de'
-    TGT_FILE_TOKENIZED = 'giza-pp/giza_europarl/tokenized_europarl-v7.de-en.en'
+    SRC_FILE_TOKENIZED = 'giza-pp/europarl_data/Source'
+    TGT_FILE_TOKENIZED = 'giza-pp/europarl_data/Target'
     LINENUMBER = 1920210
 
     tokenize_file(SRC_FILE, SRC_FILE_TOKENIZED, 'german', LINENUMBER)
