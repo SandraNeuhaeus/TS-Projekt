@@ -12,25 +12,42 @@ from align_connectors import Aligner
 
 
 class GizaResultsReader():
+    """Extracts Giza alignments for given connectors.
+
+    Attributes:
+        src_connectors (set): A set of words for which all alignments are
+                              counted.
+        alignments (dict): Contains the aligned connectors. Has the form:
+            {<source_connector1>: {
+                        <target_connector1>: <number_of_matches>,
+                        ...}
+                ...
+                }
+
+    """
     def __init__(self, src_connectors):
         self.src_connectors = src_connectors
         self.alignments = dict()
 
     def read_results(self, resultsfile):
-        """
+        """Extracts their alignments from the Giza results.
+
+        Args:
+            resultsfile (str): Path to file that contains Giza's results.
+
+        Returns:
+            dict: The aligned connectors. Has the form:
+                {<source_connector1>: {
+                        <target_connector1>: <number_of_matches>,
+                        ...}
+                ...
+                }
+
         """
         with open(resultsfile, encoding='utf-8') as results:
             for line in tqdm(results, desc='Reading Giza results',
                              total=1908920*3):
                 if line.startswith('#'):
-        #            match = re.search(r'source length ([0-9]+)', line)
-        #            if match:
-        #                src_len = match.group(1)
-        #            match = re.search(r'target length ([0-9]+)', line)
-        #            if match:
-        #                tgt_len = match.group(1)
-        #            if src_len > tgt_len:
-        #                alignments00 += 1
                     continue
                 elif not line.startswith('NULL'):
                     english_toks = line.split(' ')
@@ -77,7 +94,7 @@ class GizaResultsReader():
 
 def main():
     results_obj = GizaResultsReader({'aber', 'doch', 'jedoch',
-                              'allerdings', 'andererseits', 'hingegen'})
+                                     'allerdings', 'andererseits', 'hingegen'})
     results_obj.read_results('giza-pp/europarl_data/output/Result.A3.final')
     Aligner.result_to_df(results_obj.alignments, save='results/giza.csv')
 
