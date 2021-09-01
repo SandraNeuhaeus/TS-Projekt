@@ -54,7 +54,7 @@ class DisambigAligner(ListAligner):
                                 frame, start, max_window
                                 )
                         # Add equivalent to alignments.
-                        self._note_match(alignments, token, equivalent)
+                        self.note_match(alignments, token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1

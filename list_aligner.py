@@ -104,7 +104,7 @@ class ListAligner(Aligner):
                                 frame, start, max_window
                                 )
                         # Add equivalent to alignments.
-                        self._note_match(alignments, token, equivalent)
+                        self.note_match(alignments, token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
@@ -182,27 +182,6 @@ class ListAligner(Aligner):
                 elif not right:
                     break
         return ''
-
-    @staticmethod
-    def _note_match(dic, connector, equivalent):
-        """Enters new found matches to a dictionary.
-
-        Args:
-            dic (dict): Dict to which the connector and equivalent
-                        are added in-place.
-            connector(str): Source connector.
-            equivalent(str): Found target connector.
-
-        """
-        if connector not in dic:
-            dic[connector] = {equivalent: 1}
-            # connector hasn't been aligned to equivalent yet.
-        elif equivalent not in dic[connector]:
-            dic[connector][equivalent] = 1
-            # connector has been aligned to equivalent
-            # before.
-        else:
-            dic[connector][equivalent] += 1
 
 
 def main():

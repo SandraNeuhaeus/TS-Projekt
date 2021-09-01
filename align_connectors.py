@@ -6,11 +6,12 @@ Es soll den ersten Schritt des Modulprojekts erfüllen.
 
 """
 from split_text import token_split
+
 import numpy as np
 import pandas as pd
 
 
-class Aligner():
+class NaiveAligner():
     """Produces mappings from certain words in one text to another text."""
 
     def __init__(self, connectors, mode='naive'):
@@ -70,7 +71,7 @@ class Aligner():
                              /
                             V
             tgt_tokens: [-, =]
-        
+
         Args:
             src_path(str): see Aligner.align().
             tgt_path(str): see Aligner.align().
@@ -121,34 +122,15 @@ class Aligner():
         tgt_file.close()
         return alignments
 
-    @staticmethod
-    def result_to_df(d, save=''):
-        """Creates a pandas.DataFrame from a nested dictionary.
-
-        Args:
-            d(dict): a nested dictionary with immutable keys and dictionaries
-                     (dict) as values.
-            save(:obj:`str`, optional): path to the .csv-file the DataFrame
-                                        can optionally be saved in, if save is
-                                        evaluated as True.
-
-        """
-        df = pd.DataFrame(d)
-        df = df.replace(to_replace=np.nan, value=0)
-        df = df.astype(int)
-        if save:
-            df.to_csv(path_or_buf=save, encoding='utf-8')
-        return df
-
 
 def main():
-    obj1 = Aligner({'aber', 'doch', 'jedoch',
+    obj1 = NaiveAligner({'aber', 'doch', 'jedoch',
                     'allerdings', 'andererseits', 'hingegen'})
     test_result = obj1.align('test.de', 'test.en')
-    print(Aligner.result_to_df(test_result))
+    print(NaiveAligner.result_to_df(test_result))
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    print(Aligner.result_to_df(europarl_result, save='naive.csv'))
+    print(NaiveAligner.result_to_df(europarl_result, save='naive.csv'))
     europarl_df = pd.read_csv('naive.csv', index_col=0)
     for col in europarl_df:
         print(europarl_df.sort_values(by=col, ascending=False).head(10))
