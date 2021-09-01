@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Python 3.6.12
 
-"""Given a list of words, extracts their alignments from the Giza results."""
+"""Extracts information about specified words from the Giza results."""
 
 
 import pandas as pd
@@ -30,7 +30,10 @@ class GizaResultsReader():
         self.alignments = dict()
 
     def read_results(self, resultsfile):
-        """Extracts their alignments from the Giza results.
+        """Extracts specified alignments from the Giza results.
+
+        Finds the results for the words in the set
+        'self.src_connectors'.
 
         Args:
             resultsfile (str): Path to file that contains Giza's results.
@@ -96,6 +99,8 @@ def main():
     results_obj = GizaResultsReader({'aber', 'doch', 'jedoch',
                                      'allerdings', 'andererseits', 'hingegen'})
     results_obj.read_results('giza-pp/europarl_data/output/Result.A3.final')
+
+    # Save results to csv.
     Aligner.result_to_df(results_obj.alignments, save='results/giza.csv')
 
     # Save top matches of every connector.
