@@ -21,6 +21,7 @@ class DisambigAligner(ListAligner):
 
     def align(self, src_path, tgt_path, frame=33, start=-16, max_window=0):
         """ """
+        alignments = dict()
         not_occs = da.create_non_con_dict(self.src_connectors, src_path)[0]
         occs = dict()
         if not max_window:
@@ -53,14 +54,14 @@ class DisambigAligner(ListAligner):
                                 frame, start, max_window
                                 )
                         # Add equivalent to alignments.
-                        self._note_match(token, equivalent)
+                        self._note_match(alignments, token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
                 lineno += 1
                 pbar.update(1)
             pbar.close()
-        return self.alignments
+        return alignments
 
 
 def main():

@@ -23,7 +23,6 @@ class ListAligner(Aligner):
         self.src_connectors = self.connectors
         del self.connectors
         self.tgt_connectors = tgt_connectors
-        self.alignments = dict()
 
     def align(self, src_path, tgt_path, frame=33, start=-16, max_window=None):
         """Aims to align the connectors from two text files.
@@ -83,6 +82,7 @@ class ListAligner(Aligner):
                 }
 
         """
+        alignments = dict()
         with open(src_path, encoding='utf-8') as src_file, \
              open(tgt_path, encoding='utf-8') as tgt_file:
             lineno = 1
@@ -104,14 +104,14 @@ class ListAligner(Aligner):
                                 frame, start, max_window
                                 )
                         # Add equivalent to alignments.
-                        self._note_match(token, equivalent)
+                        self._note_match(alignments, token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
                 lineno += 1
                 pbar.update(1)
             pbar.close()
-        return self.alignments
+        return alignments
 
     def _search_equivalent(self, tokens, entry, frame, start, max_window):
         """Searches for connectors from 'self.tgt_connectors' in a token list.
@@ -183,23 +183,26 @@ class ListAligner(Aligner):
                     break
         return ''
 
-    def _note_match(self, connector, equivalent):
-        """Enters new found matches to 'self.alignments'.
+    @staticmethod
+    def _note_match(dic, connector, equivalent):
+        """Enters new found matches to a dictionary.
 
         Args:
+            dic (dict): Dict to which the connector and equivalent
+                        are added in-place.
             connector(str): Source connector.
             equivalent(str): Found target connector.
 
         """
-        if connector not in self.alignments:
-            self.alignments[connector] = {equivalent: 1}
+        if connector not in dic:
+            dic[connector] = {equivalent: 1}
             # connector hasn't been aligned to equivalent yet.
-        elif equivalent not in self.alignments[connector]:
-            self.alignments[connector][equivalent] = 1
+        elif equivalent not in dic[connector]:
+            dic[connector][equivalent] = 1
             # connector has been aligned to equivalent
             # before.
         else:
-            self.alignments[connector][equivalent] += 1
+            dic[connector][equivalent] += 1
 
 
 def main():
