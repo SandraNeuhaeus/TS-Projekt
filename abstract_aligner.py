@@ -19,7 +19,7 @@ class Aligner(ABC):
         pass
 
     @staticmethod
-    def _note_match(dic, connector, equivalent):
+    def note_match(dic, connector, equivalent):
         """Enters new found matches to a dictionary.
 
         Args:
@@ -59,7 +59,7 @@ class Aligner(ABC):
         return df
 
     @staticmethod
-    def top_of_df(df, save='', top=10):
+    def print_top_values(df, save='', top=10):
         """Extracts highest values of every column.
 
         Args:
