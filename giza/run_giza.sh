@@ -1,4 +1,6 @@
-cd giza-pp/GIZA++-v2
+cd giza-pp
+make
+cd GIZA++-v2
 ./plain2snt.out '../europarl_data/Source' '../europarl_data/Target'
 cd ../mkcls-v2
 ./mkcls -p'../europarl_data/Source' -V '../europarl_data/Source.vcb.classes'
