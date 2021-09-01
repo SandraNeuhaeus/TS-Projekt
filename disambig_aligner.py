@@ -64,7 +64,7 @@ class DisambigAligner(ListAligner):
 
 
 def main():
-    logging.basicConfig(filename="no_matches.log",
+    logging.basicConfig(filename="results/no_matches.log",
                         filemode='w', level=logging.INFO)
     obj1 = DisambigAligner(
             src_connectors={'aber', 'doch', 'jedoch',
@@ -85,7 +85,7 @@ def main():
                                  'de-en/europarl-v7.de-en.en')
     # Save results
     DisambigAligner.result_to_df(europarl_result,
-                                 save='disambig_33_minus16.csv')
+                                 save='results/disambig_33_minus16.csv')
 
 
 if __name__ == "__main__":
