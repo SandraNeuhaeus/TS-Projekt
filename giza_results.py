@@ -3,12 +3,10 @@
 
 """Extracts information about specified words from the Giza results."""
 
-
-import pandas as pd
-
 from tqdm import tqdm
 
 from abstract_aligner import Aligner
+
 
 class GizaResultsReader():
     """Extracts Giza alignments for given connectors.

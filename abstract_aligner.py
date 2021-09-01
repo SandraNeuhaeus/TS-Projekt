@@ -1,10 +1,6 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Sep  1 15:03:50 2021
 
-@author: sandra
-"""
+"""This module contains a template for all Aligner classes."""
 
 from abc import ABC, abstractmethod
 

@@ -1,6 +1,6 @@
 #      Python: 3.7.6
 #   Kodierung: utf-8
-"""Dieses Modul fasst Funktionalitäten zur Alignierung von Wörtern zusammen.
+"""Dieses Modul enthält den naiven Alignierungsansatz.
 
 Es soll den ersten Schritt des Modulprojekts erfüllen.
 
@@ -22,9 +22,9 @@ class NaiveAligner(Aligner):
         """Aims to align the connectors from two text files.
 
         Args:
-            src_path(str): directory of the file in the source language (the
+            src_path(str): Path to the file in the source language (the
                            same as self.connectors).
-            tgt_path(str): directory of the target file, where we're trying to
+            tgt_path(str): Path to the target file, where we're trying to
                            find equivalents of the connectors in the source
                            file.
 

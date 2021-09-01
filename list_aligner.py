@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Python 3.6.12
 
-"""
-Aligns the connectors from two text files using lists of connectors.
+"""This module contains the list alignment approach.
 
 Specified source connectors are matched with specified target
 connectors using their distance in the parallel sentences.
+
 """
 
 import logging
@@ -25,9 +25,9 @@ class ListAligner(Aligner):
         """Aims to align the connectors from two text files.
 
         Args:
-            src_path(str): directory of the file in the source language (the
+            src_path(str): Path to the file in the source language (the
                            same as self.connectors).
-            tgt_path(str): directory of the target file, where we're trying to
+            tgt_path(str): Path to the target file, where we're trying to
                            find equivalents of the connectors in the source
                            file.
             frame(int): Size of the frame in which an equivalent in searched.
@@ -111,6 +111,10 @@ class ListAligner(Aligner):
     def _search_equivalent(self, tokens, entry, frame, start, max_window):
         """Searches for connectors from 'self.tgt_connectors' in a token list.
 
+        Starts at index 'entry' in the token list, then searches step by
+        step at farther positions. Starts with one-word connectors, then
+        two-word connectors etc.
+
         Args:
             tokens(list): A tokenized sentence.
             entry(int): Index of the connector from the source sentence.
@@ -187,7 +191,7 @@ def main():
 
     """
     logging.basicConfig(filename="results/no_matches.log",
-                    level=logging.INFO)
+                        level=logging.INFO)
 
     obj1 = ListAligner(
             src_connectors={'aber', 'doch', 'jedoch',

@@ -13,13 +13,28 @@ import logging
 
 
 class DisambigAligner(ListAligner):
-    """ """
+    """Combines the disambiguation and the alignment."""
 
     def __init__(self, src_connectors, tgt_connectors):
         super().__init__(src_connectors, tgt_connectors)
 
     def align(self, src_path, tgt_path, frame=33, start=-16, max_window=0):
-        """ """
+        """Performs a disambiguation before list alignment.
+
+        Args:
+            src_path(str): Path to the file in the source language (the
+                           same as self.connectors).
+            tgt_path(str): Path to the target file, where we're trying to
+                           find equivalents of the connectors in the source
+                           file.
+            frame(int): Size of the frame in which an equivalent in searched.
+            start(int): A negative value that states the position of the first
+                        token in the frame relative to the source connector.
+            max_window(int): Maximum connector length that is searched for. If
+                             None, the maximum length is computed from
+                             'self.tgt_connectors'.
+
+        """
         alignments = dict()
         not_occs = da.create_non_con_dict(self.src_connectors, src_path)[0]
         occs = dict()
