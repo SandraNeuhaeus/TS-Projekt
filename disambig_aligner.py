@@ -16,8 +16,7 @@ class DisambigAligner(ListAligner):
     """ """
 
     def __init__(self, src_connectors, tgt_connectors):
-        super().__init__('list', src_connectors, tgt_connectors)
-        del self.mode
+        super().__init__(src_connectors, tgt_connectors)
 
     def align(self, src_path, tgt_path, frame=33, start=-16, max_window=0):
         """ """
@@ -85,8 +84,10 @@ def main():
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
     # Save results
-    DisambigAligner.result_to_df(europarl_result,
-                                 save='results/disambig_33_minus16.csv')
+    europarl_df = obj1.result_to_df(
+            europarl_result, save='results/disambig_33_minus16.csv'
+            )
+    obj1.print_top_values(europarl_df, save='results/disambig_33_minus16.txt')
 
 
 if __name__ == "__main__":

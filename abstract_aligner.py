@@ -13,9 +13,9 @@ import numpy as np
 
 
 class Aligner(ABC):
-
+    """Template for all Aligner classes."""
     @abstractmethod
-    def align():
+    def align(self):
         pass
 
     @staticmethod
@@ -60,12 +60,12 @@ class Aligner(ABC):
 
     @staticmethod
     def print_top_values(df, save='', top=10):
-        """Extracts highest values of every column.
+        """Informs about the highest values of every column.
 
         Args:
             df(pandas.Dataframe): A Pandas Dataframe.
-            save(str): Path to file for extracted information. If empty,
-                        information is printed to console.
+            save(str): Path to txt-file for extracted information. If empty,
+                       information is printed to console.
             top(int): How many values are printed.
 
         """
@@ -73,10 +73,9 @@ class Aligner(ABC):
             out = open(save, 'w', encoding='utf-8')
         else:
             out = None
-        print(f'Top {top} of every connector', end='\n\n', file=out)
+        print(f'Top {top} of every connector:', end='\n\n', file=out)
         for col in df:
             print(df[col].sort_values(ascending=False).head(top),
                   end='\n\n', file=out)
         if save:
             out.close()
-

@@ -8,7 +8,6 @@ Specified source connectors are matched with specified target
 connectors using their distance in the parallel sentences.
 """
 
-import pandas as pd
 import logging
 
 from tqdm import tqdm
@@ -18,10 +17,8 @@ from split_text import token_split
 
 
 class ListAligner(Aligner):
-    def __init__(self, mode, src_connectors, tgt_connectors):
-        super().__init__(src_connectors, mode)
-        self.src_connectors = self.connectors
-        del self.connectors
+    def __init__(self, src_connectors, tgt_connectors):
+        self.src_connectors = src_connectors
         self.tgt_connectors = tgt_connectors
 
     def align(self, src_path, tgt_path, frame=33, start=-16, max_window=None):
@@ -41,14 +38,12 @@ class ListAligner(Aligner):
                              'self.tgt_connectors'.
 
         """
-        super().align(src_path, tgt_path)
         if not max_window:
             max_window = self._compute_maxwindow()
-        if self.mode == 'list':
-            return self.__list_align(
-                    src_path, tgt_path,
-                    frame, start, max_window
-                    )
+        return self.__list_align(
+                src_path, tgt_path,
+                frame, start, max_window
+                )
 
     def _compute_maxwindow(self):
         """Computes the maximum target connector length."""
@@ -195,7 +190,6 @@ def main():
                     level=logging.INFO)
 
     obj1 = ListAligner(
-            mode='list',
             src_connectors={'aber', 'doch', 'jedoch',
                             'allerdings', 'andererseits', 'hingegen'},
             tgt_connectors={'but', 'however', 'though',
@@ -214,32 +208,23 @@ def main():
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
     # Save results.
-    ListAligner.result_to_df(europarl_result,
-                             save='results/list_approach.csv')
+    europarl_df = ListAligner.result_to_df(
+            europarl_result, save='results/list_approach.csv'
+            )
 
-    europarl_df = pd.read_csv('results/list_approach.csv', index_col=0)
-    with open('results/list_approach.txt',
-              'w', encoding='utf-8') as results:
-        print('Top 10 of every connector', file=results, end='\n\n')
-        for col in europarl_df:
-            print(europarl_df[col].sort_values(ascending=False).head(10),
-                  file=results, end='\n\n')
+    obj1.print_top_values(europarl_df, save='results/list_approach.txt')
 
     # Alignment with one-word target connectors.
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en',
                                  max_window=1)
     # Save results.
-    ListAligner.result_to_df(europarl_result,
-                             save='results/list_approach_oneword.csv')
+    europarl_df = ListAligner.result_to_df(
+            europarl_result, save='results/list_approach_oneword.csv'
+            )
+    obj1.print_top_values(europarl_df,
+                          save='results/list_approach_oneword.txt')
 
-    europarl_df = pd.read_csv('results/list_approach_oneword.csv', index_col=0)
-    with open('results/list_approach_oneword.txt',
-              'w', encoding='utf-8') as results:
-        print('Top 10 of every connector', file=results, end='\n\n')
-        for col in europarl_df:
-            print(europarl_df[col].sort_values(ascending=False).head(10),
-                  file=results, end='\n\n')
 
 if __name__ == "__main__":
     main()

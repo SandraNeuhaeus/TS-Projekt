@@ -5,21 +5,18 @@
 Es soll den ersten Schritt des Modulprojekts erfüllen.
 
 """
+
 from split_text import token_split
-
-import numpy as np
-import pandas as pd
+from abstract_aligner import Aligner
 
 
-class NaiveAligner():
+class NaiveAligner(Aligner):
     """Produces mappings from certain words in one text to another text."""
 
-    def __init__(self, connectors, mode='naive'):
+    def __init__(self, connectors):
         #: list of str: contains the tokens supposedly contained in the source
         #               that are mapped to tokens in the target text.
         self.connectors = connectors
-        #: obj:'str', optional: determines the alignment algorithm applied.
-        self.mode = mode
 
     def align(self, src_path, tgt_path):
         """Aims to align the connectors from two text files.
@@ -32,8 +29,7 @@ class NaiveAligner():
                            file.
 
         """
-        if self.mode == 'naive':
-            return self.__naive_align(src_path, tgt_path)
+        return self.__naive_align(src_path, tgt_path)
 
     def __naive_align(self, src_path, tgt_path):
         """Maps source text tokens (in self.connectors) to target text tokens.
@@ -125,15 +121,14 @@ class NaiveAligner():
 
 def main():
     obj1 = NaiveAligner({'aber', 'doch', 'jedoch',
-                    'allerdings', 'andererseits', 'hingegen'})
-    test_result = obj1.align('test.de', 'test.en')
-    print(NaiveAligner.result_to_df(test_result))
+                         'allerdings', 'andererseits', 'hingegen'})
+#    test_result = obj1.align('test.de', 'test.en')
+#    print(NaiveAligner.result_to_df(test_result))
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    print(NaiveAligner.result_to_df(europarl_result, save='naive.csv'))
-    europarl_df = pd.read_csv('naive.csv', index_col=0)
-    for col in europarl_df:
-        print(europarl_df.sort_values(by=col, ascending=False).head(10))
+    df = NaiveAligner.result_to_df(europarl_result, save='results/naive.csv')
+    print(df)
+    obj1.print_top_values(df)
 
 
 if __name__ == "__main__":
