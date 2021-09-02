@@ -1,0 +1,74 @@
+Top 10 of every connector:
+
+but             9649
+                8131
+however         2213
+yet              836
+although         588
+still            416
+though           337
+after all        289
+nevertheless     250
+again            156
+Name: doch, dtype: int64
+
+but                 47664
+                    12169
+however              9311
+though               1391
+although             1155
+yet                  1117
+still                 706
+nevertheless          485
+at the same time      364
+again                 270
+Name: aber, dtype: int64
+
+however         3969
+                1407
+but             1322
+nevertheless     303
+though           245
+although         195
+yet              138
+still            105
+nonetheless       83
+albeit            43
+Name: allerdings, dtype: int64
+
+however             3309
+but                 2363
+                    1202
+nevertheless         169
+yet                  165
+although             108
+still                108
+though                96
+nonetheless           61
+at the same time      28
+Name: jedoch, dtype: int64
+
+                     1541
+on the other hand    1107
+but                   353
+however               182
+at the same time       66
+still                  46
+yet                    36
+although               22
+though                 18
+again                  16
+Name: andererseits, dtype: int64
+
+                     118
+on the other hand    109
+however               97
+but                   46
+instead               13
+whereas               12
+on the contrary        9
+still                  6
+by contrast            6
+although               5
+Name: hingegen, dtype: int64
+
