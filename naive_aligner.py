@@ -1,38 +1,34 @@
 #      Python: 3.7.6
 #   Kodierung: utf-8
-"""Dieses Modul fasst Funktionalitäten zur Alignierung von Wörtern zusammen.
+"""Dieses Modul enthält den naiven Alignierungsansatz.
 
 Es soll den ersten Schritt des Modulprojekts erfüllen.
 
 """
 from split_text import token_split
-import numpy as np
-import pandas as pd
+from abstract_aligner import Aligner
 
 
-class Aligner():
+class NaiveAligner(Aligner):
     """Produces mappings from certain words in one text to another text."""
 
-    def __init__(self, connectors, mode='naive'):
+    def __init__(self, connectors):
         #: list of str: contains the tokens supposedly contained in the source
         #               that are mapped to tokens in the target text.
         self.connectors = connectors
-        #: obj:'str', optional: determines the alignment algorithm applied.
-        self.mode = mode
 
     def align(self, src_path, tgt_path):
         """Aims to align the connectors from two text files.
 
         Args:
-            src_path(str): directory of the file in the source language (the
+            src_path(str): Path to the file in the source language (the
                            same as self.connectors).
-            tgt_path(str): directory of the target file, where we're trying to
+            tgt_path(str): Path to the target file, where we're trying to
                            find equivalents of the connectors in the source
                            file.
 
         """
-        if self.mode == 'naive':
-            return self.__naive_align(src_path, tgt_path)
+        return self.__naive_align(src_path, tgt_path)
 
     def __naive_align(self, src_path, tgt_path):
         """Maps source text tokens (in self.connectors) to target text tokens.
@@ -70,7 +66,7 @@ class Aligner():
                              /
                             V
             tgt_tokens: [-, =]
-        
+
         Args:
             src_path(str): see Aligner.align().
             tgt_path(str): see Aligner.align().
@@ -106,52 +102,23 @@ class Aligner():
                             equivalent = tgt_tokens[-1]
                     else:
                         equivalent = tgt_tokens[token_id]
-                    # connector hasn't been aligned yet.
-                    if token not in alignments:
-                        alignments[token] = {equivalent: 1}
-                    # connector hasn't been aligned to equivalent yet.
-                    elif equivalent not in alignments[token]:
-                        alignments[token][equivalent] = 1
-                    # connector has been aligned to equivalent
-                    # before.
-                    else:
-                        alignments[token][equivalent] += 1
+                    self.note_match(alignments, token, equivalent)
                 token_id += 1
         src_file.close()
         tgt_file.close()
         return alignments
 
-    @staticmethod
-    def result_to_df(d, save=''):
-        """Creates a pandas.DataFrame from a nested dictionary.
-
-        Args:
-            d(dict): a nested dictionary with immutable keys and dictionaries
-                     (dict) as values.
-            save(:obj:`str`, optional): path to the .csv-file the DataFrame
-                                        can optionally be saved in, if save is
-                                        evaluated as True.
-
-        """
-        df = pd.DataFrame(d)
-        df = df.replace(to_replace=np.nan, value=0)
-        df = df.astype(int)
-        if save:
-            df.to_csv(path_or_buf=save, encoding='utf-8')
-        return df
-
 
 def main():
-    obj1 = Aligner({'aber', 'doch', 'jedoch',
-                    'allerdings', 'andererseits', 'hingegen'})
-    test_result = obj1.align('test.de', 'test.en')
-    print(Aligner.result_to_df(test_result))
+    obj1 = NaiveAligner({'aber', 'doch', 'jedoch',
+                         'allerdings', 'andererseits', 'hingegen'})
+#    test_result = obj1.align('test.de', 'test.en')
+#    print(NaiveAligner.result_to_df(test_result))
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    print(Aligner.result_to_df(europarl_result, save='naive.csv'))
-    europarl_df = pd.read_csv('naive.csv', index_col=0)
-    for col in europarl_df:
-        print(europarl_df.sort_values(by=col, ascending=False).head(10))
+    europarl_df = NaiveAligner.result_to_df(europarl_result,
+                                   save='results/naive/naive.csv')
+    obj1.print_top_values(europarl_df, save='results/naive/naive.txt', top=15)
 
 
 if __name__ == "__main__":
