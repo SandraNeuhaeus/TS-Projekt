@@ -1,15 +1,18 @@
 # Python: 3.7.6
 # Kodierung: utf-8
+
 """Dieses Modul verwendet die Ergebnisse aus Schritt 2 für Schritt 1.
 
 Alignierung bei Aussonderung von Nicht-Konnektor-Lesarten.
 
 """
+import logging
+
+from tqdm import tqdm
+
 from disambiguator import Disambiguator as da
 from list_aligner import ListAligner
 from split_text import token_split
-from tqdm import tqdm
-import logging
 
 
 class DisambigAligner(ListAligner):
@@ -79,7 +82,7 @@ class DisambigAligner(ListAligner):
 
 
 def main():
-    logging.basicConfig(filename="results/no_matches.log",
+    logging.basicConfig(filename="results/disambig/no_matches.log",
                         filemode='w', level=logging.INFO)
     obj1 = DisambigAligner(
             src_connectors={'aber', 'doch', 'jedoch',
@@ -98,11 +101,14 @@ def main():
             )
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    # Save results
+    # Save results df to csv.
     europarl_df = obj1.result_to_df(
-            europarl_result, save='results/disambig_33_minus16.csv'
+            europarl_result, save='results/disambig/disambig_33_minus16.csv'
             )
-    obj1.print_top_values(europarl_df, save='results/disambig_33_minus16.txt')
+    # Save top 10 matches for every connector.
+    obj1.print_top_values(
+            europarl_df, save='results/disambig/disambig_33_minus16.txt'
+            )
 
 
 if __name__ == "__main__":
