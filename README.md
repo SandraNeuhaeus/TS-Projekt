@@ -20,7 +20,7 @@ Connector Aligner - Find english equivalents for german connectors in sentence-a
 
 
 ### DESCRIPTION
-We used sentence-aligned parallel texts from the Europarl corpus (https://www.statmt.org/europarl/) in german and english. The program searches the six constrastive connectors "aber", "doch", "jedoch", "allerdings", "andererseits" and "hingegen" and matches an english translation from the appropriate english sentence. To find the translation we used a list of english contrastive connectors and the positions of the words in the sentences.
+We used sentence-aligned parallel texts from the Europarl corpus (https://www.statmt.org/europarl/) in german and english. The program searches the six constrastive connectors "aber", "doch", "jedoch", "allerdings", "andererseits" and "hingegen" and matches an english translation from the appropriate english sentence. To find the translation we used a list of english contrastive connectors and the positions of the words in the sentences. The program also contains a disambiguation for the six words when they appear in a non-connector context. This bases on simple context information like commas and the sentence beginning where most connectors can be found. To have a quality comparison we also used Giza++, a tool for word alignment.
 
 ### FILES
 
@@ -139,16 +139,16 @@ Further the produced files are very large. One should expect **3.5 GB** plus the
 Alternatively download the most important result file `Result.A3.final` from https://boxup.uni-potsdam.de/index.php/s/wA7sjLiCjLgH8gc (Password: Konnektor) and place it at `giza/giza-pp/europarl_data/output/`. (Url expires at 2nd September 2022)
 After this you can reenter at `python giza_results.py`
 
-Preprocess data:  
+**Preprocess data:**  
 This step will produce the files `Source` and `Target` in `giza-pp/europarl_data/` (597 MB)
 ```
 python prepare_data.py  # tokenizes corpus files
 ```
-Final start of Giza++:
+**Final start of Giza++:**
 ```
 ./run_giza.sh  # produces 3.5 GB
 ```
-Extract required information from `giza/giza-pp/europarl_data/output/Result.A3.final`:
+The most important output file is `Result.A3.final` in `giza/giza-pp/europarl_data/output/`. The next step extracts the required connector information from this file.
 ```
 cd ..
 python giza_results.py  # extracts required information from 'giza/giza-pp/europarl_data/output/Result.A3.final'
