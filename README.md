@@ -125,10 +125,11 @@ The results are saved to `results/naive/`.
 
 #### Giza++ alignment
 
-Create output directory:
+Create output/input directories:
 ```
 cd giza
-mkdir giza-pp/europarl_data  # directory for Giza's input/output
+mkdir giza-pp/europarl_data
+mkdir giza-pp/europarl_data/output
 ```
 Run Giza:
 
