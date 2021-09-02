@@ -1,0 +1,104 @@
+Top 15 of every connector:
+
+but        4351
+the        1862
+however    1559
+to          862
+is          810
+it          803
+that        759
+we          751
+of          685
+in          639
+i           637
+yet         604
+this        497
+and         474
+a           461
+Name: doch, dtype: int64
+
+however    3262
+is         2392
+the        1908
+not        1444
+to         1227
+but        1220
+are         751
+of          749
+that        748
+must        734
+have        676
+we          657
+in          643
+it          624
+a           613
+Name: jedoch, dtype: int64
+
+but        16897
+the         4717
+however     3965
+is          2193
+of          2125
+to          2061
+we          2020
+it          1922
+i           1898
+in          1641
+not         1579
+and         1568
+that        1462
+also        1397
+a           1212
+Name: aber, dtype: int64
+
+on             1605
+the             504
+and             290
+furthermore     162
+hand            141
+however         115
+of              109
+but             106
+to               96
+in               96
+other            79
+one              76
+we               65
+moreover         58
+at               57
+Name: andererseits, dtype: int64
+
+however         3175
+the              650
+but              503
+i                481
+is               418
+it               379
+we               377
+nevertheless     329
+not              305
+to               288
+in               255
+that             230
+of               221
+this             190
+have             189
+Name: allerdings, dtype: int64
+
+on         172
+the        147
+however    111
+other       59
+is          47
+hand        40
+in          34
+we          33
+i           29
+to          27
+of          27
+but         26
+are         26
+a           25
+not         24
+Name: hingegen, dtype: int64
+

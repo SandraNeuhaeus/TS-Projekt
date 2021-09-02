@@ -9,6 +9,8 @@ import logging
 import pandas as pd
 import regex as re
 
+from tqdm import tqdm
+
 
 class Disambiguator():
     """Does stuff."""
@@ -125,7 +127,9 @@ class Disambiguator():
         con_total_occs = {}
         try:
             with io.open(tgt_path, mode="r", encoding="utf-8") as txt_file:
-                for connector in connector_list:
+                for connector in tqdm(connector_list,
+                                      desc='Disambiguation',
+                                      total=len(connector_list)):
                     connector_occs = []
                     not_connectors[connector] = []
                     txt_file.seek(0)
@@ -156,22 +160,22 @@ class Disambiguator():
 def main():
     """Drop non-connector rows from alignments_df."""
     logging.basicConfig(level=logging.DEBUG)
-    disa = Disambiguator(pd.read_csv("naive.csv"))
+    disa = Disambiguator(pd.read_csv("results/naive/naive.csv"))
     logging.debug("Finished loading")
     can_list = disa.create_candidate_list()
-    dropped = disa.drop_rows(disa.disambiguate('europarl-v7.de-en.en',
+    dropped = disa.drop_rows(disa.disambiguate('de-en/europarl-v7.de-en.en',
                                                can_list, 21))
     dropped_sorted = dropped.sort_values("andererseits", "index",
                                          ascending=False)
     logging.debug("Finished disambiguating")
-    dropped.to_csv('dropped.csv')
+    dropped.to_csv('results/disambig/dropped.csv')
     # print(dropped_sorted)
     # logging.debug(str(dropped_sorted.shape))
     """Create non_connector_dictionary."""
     non_con = Disambiguator.create_non_con_dict(['aber', 'doch', 'jedoch',
                                                  'allerdings', 'andererseits',
                                                  'hingegen'],
-                                                r"europarl-v7.de-en.de")
+                                                r"de-en/europarl-v7.de-en.de")
     print(non_con[0])
 
 

@@ -1,26 +1,44 @@
 # Python: 3.7.6
 # Kodierung: utf-8
+
 """Dieses Modul verwendet die Ergebnisse aus Schritt 2 für Schritt 1.
 
 Alignierung bei Aussonderung von Nicht-Konnektor-Lesarten.
 
 """
+import logging
+
+from tqdm import tqdm
+
 from disambiguator import Disambiguator as da
 from list_aligner import ListAligner
 from split_text import token_split
-from tqdm import tqdm
-import logging
 
 
 class DisambigAligner(ListAligner):
-    """ """
+    """Combines the disambiguation and the alignment."""
 
     def __init__(self, src_connectors, tgt_connectors):
-        super().__init__('list', src_connectors, tgt_connectors)
-        del self.mode
+        super().__init__(src_connectors, tgt_connectors)
 
     def align(self, src_path, tgt_path, frame=33, start=-16, max_window=0):
-        """ """
+        """Performs a disambiguation before list alignment.
+
+        Args:
+            src_path(str): Path to the file in the source language (the
+                           same as self.connectors).
+            tgt_path(str): Path to the target file, where we're trying to
+                           find equivalents of the connectors in the source
+                           file.
+            frame(int): Size of the frame in which an equivalent in searched.
+            start(int): A negative value that states the position of the first
+                        token in the frame relative to the source connector.
+            max_window(int): Maximum connector length that is searched for. If
+                             None, the maximum length is computed from
+                             'self.tgt_connectors'.
+
+        """
+        alignments = dict()
         not_occs = da.create_non_con_dict(self.src_connectors, src_path)[0]
         occs = dict()
         if not max_window:
@@ -53,18 +71,18 @@ class DisambigAligner(ListAligner):
                                 frame, start, max_window
                                 )
                         # Add equivalent to alignments.
-                        self._note_match(token, equivalent)
+                        self.note_match(alignments, token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
                 lineno += 1
                 pbar.update(1)
             pbar.close()
-        return self.alignments
+        return alignments
 
 
 def main():
-    logging.basicConfig(filename="no_matches.log",
+    logging.basicConfig(filename="results/disambig/no_matches.log",
                         filemode='w', level=logging.INFO)
     obj1 = DisambigAligner(
             src_connectors={'aber', 'doch', 'jedoch',
@@ -83,9 +101,14 @@ def main():
             )
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    # Save results
-    DisambigAligner.result_to_df(europarl_result,
-                                 save='disambig_33_minus16.csv')
+    # Save results df to csv.
+    europarl_df = obj1.result_to_df(
+            europarl_result, save='results/disambig/disambig_33_minus16.csv'
+            )
+    # Save top 10 matches for every connector.
+    obj1.print_top_values(
+            europarl_df, save='results/disambig/disambig_33_minus16.txt'
+            )
 
 
 if __name__ == "__main__":
