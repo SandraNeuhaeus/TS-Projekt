@@ -7,12 +7,11 @@ Specified source connectors are matched with specified target
 connectors using their distance in the parallel sentences.
 
 """
-
 import logging
 
 from tqdm import tqdm
 
-from align_connectors import Aligner
+from abstract_aligner import Aligner
 from split_text import token_split
 
 
@@ -184,13 +183,8 @@ class ListAligner(Aligner):
 
 
 def main():
-    """Starts alignment.
-
-    Uses multi-word target connectors in the first run, in the second
-    run only one-word target connectors.
-
-    """
-    logging.basicConfig(filename="results/no_matches.log",
+    """Starts alignment."""
+    logging.basicConfig(filename="results/list/no_matches.log",
                         level=logging.INFO)
 
     obj1 = ListAligner(
@@ -211,23 +205,24 @@ def main():
     # Alignment with multi-word target connectors.
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    # Save results.
+    # Save results df to csv.
     europarl_df = ListAligner.result_to_df(
-            europarl_result, save='results/list_approach.csv'
+            europarl_result, save='results/list/list_33_minus16.csv'
             )
+    # Save top 10 equivalents for every connector.
+    obj1.print_top_values(europarl_df, save='results/list/list_33_minus16.txt')
 
-    obj1.print_top_values(europarl_df, save='results/list_approach.txt')
-
-    # Alignment with one-word target connectors.
-    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
-                                 'de-en/europarl-v7.de-en.en',
-                                 max_window=1)
-    # Save results.
-    europarl_df = ListAligner.result_to_df(
-            europarl_result, save='results/list_approach_oneword.csv'
-            )
-    obj1.print_top_values(europarl_df,
-                          save='results/list_approach_oneword.txt')
+#    # ===========================================================
+#    # Alignment with one-word target connectors.
+#    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
+#                                 'de-en/europarl-v7.de-en.en',
+#                                 max_window=1)
+#    # Save results.
+#    europarl_df = ListAligner.result_to_df(
+#            europarl_result, save='results/list_approach_oneword.csv'
+#            )
+#    obj1.print_top_values(europarl_df,
+#                          save='results/list_approach_oneword.txt')
 
 
 if __name__ == "__main__":

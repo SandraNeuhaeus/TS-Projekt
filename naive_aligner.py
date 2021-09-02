@@ -5,7 +5,6 @@
 Es soll den ersten Schritt des Modulprojekts erfüllen.
 
 """
-
 from split_text import token_split
 from abstract_aligner import Aligner
 
@@ -103,16 +102,7 @@ class NaiveAligner(Aligner):
                             equivalent = tgt_tokens[-1]
                     else:
                         equivalent = tgt_tokens[token_id]
-                    # connector hasn't been aligned yet.
-                    if token not in alignments:
-                        alignments[token] = {equivalent: 1}
-                    # connector hasn't been aligned to equivalent yet.
-                    elif equivalent not in alignments[token]:
-                        alignments[token][equivalent] = 1
-                    # connector has been aligned to equivalent
-                    # before.
-                    else:
-                        alignments[token][equivalent] += 1
+                    self.note_match(alignments, token, equivalent)
                 token_id += 1
         src_file.close()
         tgt_file.close()
@@ -126,9 +116,9 @@ def main():
 #    print(NaiveAligner.result_to_df(test_result))
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    df = NaiveAligner.result_to_df(europarl_result, save='results/naive.csv')
-    print(df)
-    obj1.print_top_values(df)
+    europarl_df = NaiveAligner.result_to_df(europarl_result,
+                                   save='results/naive/naive.csv')
+    obj1.print_top_values(europarl_df, save='results/naive/naive.txt', top=15)
 
 
 if __name__ == "__main__":
