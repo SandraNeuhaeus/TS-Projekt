@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Python 3.6.12
 
 """This module contains a template for all Aligner classes."""
 
@@ -10,6 +11,7 @@ import numpy as np
 
 class Aligner(ABC):
     """Template for all Aligner classes."""
+
     @abstractmethod
     def align(self):
         pass
