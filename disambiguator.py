@@ -22,7 +22,7 @@ class Disambiguator():
 
     def disambiguate(self, tgt_path, candidate_list,
                      c_filter=10, p_filter=2, mode="pattern"):
-        """Return a drop_list containing all indices/candidates.
+        """Return a drop_list containing all indices/candidates (post alignment).
 
         Args
         -------
