@@ -163,14 +163,23 @@ class Disambiguator():
         except IOError:
             logging.basicConfig(level=logging.ERROR)
             logging.error("ERROR: Could not find the given file")
-    
+
     @staticmethod
-    def percentage_of_non_connectors(non_con_dicts):
+    def percentage_of_non_connectors(non_con_dicts, csv_file_name=""):
         """ """
         not_connectors, con_total_occs = non_con_dicts
         print("Percentage of non-connectors:\n")
+        csv_dict = {}
         for key in con_total_occs:
             print(f"{ key }: { (len(not_connectors[key])/con_total_occs[key])*100 } %\n")
+            csv_dict[key] = (len(not_connectors[key])/con_total_occs[key])*100
+        # write results into new csv_file
+        if csv_file_name != "":
+            file_name = '%s.csv' % csv_file_name
+            with open(file_name, 'w') as csv_file:
+                writer = csv.writer(csv_file)
+                for key, value in csv_dict.items():
+                    writer.writerow([key, value])
 
 
 def main():
