@@ -151,10 +151,19 @@ class Disambiguator():
         except IOError:
             logging.basicConfig(level=logging.ERROR)
             logging.error("ERROR: Could not find the given file")
+    
+    @staticmethod
+    def percentage_of_non_connectors(non_con_dicts):
+        """ """
+        not_connectors, con_total_occs = non_con_dicts
+        print("Percentage of non-connectors:\n")
+        for key in con_total_occs:
+            print(f"{ key }: { (len(not_connectors[key])/con_total_occs[key])*100 } %\n")
 
 
 def main():
     """Drop non-connector rows from alignments_df."""
+    """
     logging.basicConfig(level=logging.DEBUG)
     disa = Disambiguator(pd.read_csv("naive.csv"))
     logging.debug("Finished loading")
@@ -167,12 +176,14 @@ def main():
     dropped.to_csv('dropped.csv')
     # print(dropped_sorted)
     # logging.debug(str(dropped_sorted.shape))
+    """
     """Create non_connector_dictionary."""
     non_con = Disambiguator.create_non_con_dict(['aber', 'doch', 'jedoch',
                                                  'allerdings', 'andererseits',
                                                  'hingegen'],
-                                                r"europarl-v7.de-en.de")
+                                                "de-en/europarl-v7.de-en.de")
     print(non_con[0])
+    Disambiguator.percentage_of_non_connectors(non_con)
 
 
 if __name__ == "__main__":
