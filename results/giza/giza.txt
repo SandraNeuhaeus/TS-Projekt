@@ -1,0 +1,104 @@
+Top 15 of every connector:
+
+                20270
+however          9632
+but              7869
+However          4131
+But               944
+though            580
+we                444
+does              414
+do                397
+nevertheless      276
+nonetheless       161
+yet               147
+Nevertheless      131
+although          126
+still             100
+Name: jedoch, dtype: int64
+
+but             55060
+                23385
+however          3800
+However          1486
+But              1142
+though           1040
+although          493
+yet               477
+we                310
+while             291
+does              180
+whilst             70
+nevertheless       48
+they               47
+rather             43
+Name: aber, dtype: int64
+
+                   1456
+on other            947
+on other hand       790
+other hand          104
+other part           87
+secondly             61
+same time            44
+On other hand        37
+other                35
+also                 33
+on                   26
+while on other       23
+on on other          18
+but on other         14
+while same time      13
+Name: andererseits, dtype: int64
+
+                14787
+but             10907
+yet               567
+however           263
+surely            236
+all               179
+still             179
+after             152
+nevertheless      141
+although          139
+fact              120
+But               119
+it                108
+because            99
+really             92
+Name: doch, dtype: int64
+
+                4230
+however         2233
+but             1317
+However          686
+though           316
+do               185
+although         167
+we               123
+course           121
+But              104
+does              78
+nevertheless      71
+albeit            65
+Nevertheless      65
+certainly         42
+Name: allerdings, dtype: int64
+
+                 723
+however          192
+on other hand    179
+On other hand    104
+contrast          53
+but               42
+other hand        39
+while             28
+instead           26
+whereas           17
+However           14
+do                14
+on                10
+on contrary       10
+contrary          10
+Name: hingegen, dtype: int64
+
