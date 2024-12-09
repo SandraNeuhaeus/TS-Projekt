@@ -1,37 +1,32 @@
 # -*- coding: utf-8 -*-
 # Python 3.6.12
 
-"""
-Aligns the connectors from two text files using lists of connectors.
+"""This module contains the list alignment approach.
 
 Specified source connectors are matched with specified target
 connectors using their distance in the parallel sentences.
-"""
 
-import pandas as pd
+"""
 import logging
 
 from tqdm import tqdm
 
-from align_connectors import Aligner
+from abstract_aligner import Aligner
 from split_text import token_split
 
 
 class ListAligner(Aligner):
-    def __init__(self, mode, src_connectors, tgt_connectors):
-        super().__init__(src_connectors, mode)
-        self.src_connectors = self.connectors
-        del self.connectors
+    def __init__(self, src_connectors, tgt_connectors):
+        self.src_connectors = src_connectors
         self.tgt_connectors = tgt_connectors
-        self.alignments = dict()
 
     def align(self, src_path, tgt_path, frame=33, start=-16, max_window=None):
         """Aims to align the connectors from two text files.
 
         Args:
-            src_path(str): directory of the file in the source language (the
+            src_path(str): Path to the file in the source language (the
                            same as self.connectors).
-            tgt_path(str): directory of the target file, where we're trying to
+            tgt_path(str): Path to the target file, where we're trying to
                            find equivalents of the connectors in the source
                            file.
             frame(int): Size of the frame in which an equivalent in searched.
@@ -42,14 +37,12 @@ class ListAligner(Aligner):
                              'self.tgt_connectors'.
 
         """
-        super().align(src_path, tgt_path)
         if not max_window:
             max_window = self._compute_maxwindow()
-        if self.mode == 'list':
-            return self.__list_align(
-                    src_path, tgt_path,
-                    frame, start, max_window
-                    )
+        return self.__list_align(
+                src_path, tgt_path,
+                frame, start, max_window
+                )
 
     def _compute_maxwindow(self):
         """Computes the maximum target connector length."""
@@ -83,6 +76,7 @@ class ListAligner(Aligner):
                 }
 
         """
+        alignments = dict()
         with open(src_path, encoding='utf-8') as src_file, \
              open(tgt_path, encoding='utf-8') as tgt_file:
             lineno = 1
@@ -104,17 +98,21 @@ class ListAligner(Aligner):
                                 frame, start, max_window
                                 )
                         # Add equivalent to alignments.
-                        self._note_match(token, equivalent)
+                        self.note_match(alignments, token, equivalent)
                         if not equivalent:
                             logging.info(f'No match: Line {lineno} ({token})')
                     token_id += 1
                 lineno += 1
                 pbar.update(1)
             pbar.close()
-        return self.alignments
+        return alignments
 
     def _search_equivalent(self, tokens, entry, frame, start, max_window):
         """Searches for connectors from 'self.tgt_connectors' in a token list.
+
+        Starts at index 'entry' in the token list, then searches step by
+        step at farther positions. Starts with one-word connectors, then
+        two-word connectors etc.
 
         Args:
             tokens(list): A tokenized sentence.
@@ -183,37 +181,13 @@ class ListAligner(Aligner):
                     break
         return ''
 
-    def _note_match(self, connector, equivalent):
-        """Enters new found matches to 'self.alignments'.
-
-        Args:
-            connector(str): Source connector.
-            equivalent(str): Found target connector.
-
-        """
-        if connector not in self.alignments:
-            self.alignments[connector] = {equivalent: 1}
-            # connector hasn't been aligned to equivalent yet.
-        elif equivalent not in self.alignments[connector]:
-            self.alignments[connector][equivalent] = 1
-            # connector has been aligned to equivalent
-            # before.
-        else:
-            self.alignments[connector][equivalent] += 1
-
 
 def main():
-    """Starts alignment.
-
-    Uses multi-word target connectors in the first run, in the second
-    run only one-word target connectors.
-
-    """
-    logging.basicConfig(filename="results/no_matches.log",
-                    level=logging.INFO)
+    """Starts alignment."""
+    logging.basicConfig(filename="results/list/no_matches.log",
+                        level=logging.INFO)
 
     obj1 = ListAligner(
-            mode='list',
             src_connectors={'aber', 'doch', 'jedoch',
                             'allerdings', 'andererseits', 'hingegen'},
             tgt_connectors={'but', 'however', 'though',
@@ -231,33 +205,25 @@ def main():
     # Alignment with multi-word target connectors.
     europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
                                  'de-en/europarl-v7.de-en.en')
-    # Save results.
-    ListAligner.result_to_df(europarl_result,
-                             save='results/list_approach.csv')
+    # Save results df to csv.
+    europarl_df = ListAligner.result_to_df(
+            europarl_result, save='results/list/list_33_minus16.csv'
+            )
+    # Save top 10 equivalents for every connector.
+    obj1.print_top_values(europarl_df, save='results/list/list_33_minus16.txt')
 
-    europarl_df = pd.read_csv('results/list_approach.csv', index_col=0)
-    with open('results/list_approach.txt',
-              'w', encoding='utf-8') as results:
-        print('Top 10 of every connector', file=results, end='\n\n')
-        for col in europarl_df:
-            print(europarl_df[col].sort_values(ascending=False).head(10),
-                  file=results, end='\n\n')
+#    # ===========================================================
+#    # Alignment with one-word target connectors.
+#    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
+#                                 'de-en/europarl-v7.de-en.en',
+#                                 max_window=1)
+#    # Save results.
+#    europarl_df = ListAligner.result_to_df(
+#            europarl_result, save='results/list_approach_oneword.csv'
+#            )
+#    obj1.print_top_values(europarl_df,
+#                          save='results/list_approach_oneword.txt')
 
-    # Alignment with one-word target connectors.
-    europarl_result = obj1.align('de-en/europarl-v7.de-en.de',
-                                 'de-en/europarl-v7.de-en.en',
-                                 max_window=1)
-    # Save results.
-    ListAligner.result_to_df(europarl_result,
-                             save='results/list_approach_oneword.csv')
-
-    europarl_df = pd.read_csv('results/list_approach_oneword.csv', index_col=0)
-    with open('results/list_approach_oneword.txt',
-              'w', encoding='utf-8') as results:
-        print('Top 10 of every connector', file=results, end='\n\n')
-        for col in europarl_df:
-            print(europarl_df[col].sort_values(ascending=False).head(10),
-                  file=results, end='\n\n')
 
 if __name__ == "__main__":
     main()

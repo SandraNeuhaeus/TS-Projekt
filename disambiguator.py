@@ -9,9 +9,11 @@ import logging
 import pandas as pd
 import regex as re
 
+from tqdm import tqdm
+
 
 class Disambiguator():
-    """Does stuff."""
+    """Filter out candidates based on patterns pre and post alignment."""
 
     def __init__(self, alignments_df,
                  patterns=[r", %s", r"%s,"]):
@@ -20,9 +22,10 @@ class Disambiguator():
 
     def disambiguate(self, tgt_path, candidate_list,
                      c_filter=10, p_filter=2, mode="pattern"):
-        """Return a drop_list containing all indices/candidates.
+        """Return a drop_list containing all indices/candidates (post alignment).
 
-        Args:
+        Args
+        -------
             tgt_path(str): directory of the target file, where the
                            candidates have been found by the aligner.
             candidate_list(list): a list containing all candidates/indices
@@ -34,27 +37,28 @@ class Disambiguator():
                            have been found in a punisch_pattern before
                            being put on the drop_list.
 
-        Returns:
+        Returns
+        -------
             list of strings: drop_list containing all indices/candidates that
                              are to be dropped from alignments_dataframe.
         """
         if mode == 'pattern':
-            return self.__pattern_disamb(tgt_path, candidate_list, c_filter,
-                                         p_filter)
+            return self._pattern_disamb(tgt_path, candidate_list, c_filter,
+                                        p_filter)
 
-    def __pattern_disamb(self, tgt_path, candidate_list, c_filter, p_filter):
+    def _pattern_disamb(self, tgt_path, candidate_list, c_filter, p_filter):
         drop_list = []
         try:
             with io.open(tgt_path, mode="r", encoding="utf-8") as txt_file:
                 for candidate in candidate_list:
-                    if self.__check_context(candidate, txt_file, c_filter):
+                    if self._check_context(candidate, txt_file, c_filter):
                         continue
                     else:
                         drop_list.append(candidate)
                 txt_file.seek(0)
                 for candidate in candidate_list:
-                    if (self.__punish_patterns([r"[a-zA-Z] %s "], candidate,
-                                               txt_file, p_filter)):
+                    if (self._punish_patterns([r"[a-zA-Z] %s "], candidate,
+                                              txt_file, p_filter)):
                         drop_list.append(candidate)
             return drop_list
         except IOError:
@@ -64,12 +68,13 @@ class Disambiguator():
     def create_candidate_list(self):
         """Create and return the candidate_list for further use.
 
-        Returns:
+        Returns
+        -------
             list of strings: containing all indices of the self.alignments_df
         """
         return list(self.alignments_df.index)
 
-    def __check_context(self, candidate, txt_file, filter):
+    def _check_context(self, candidate, txt_file, filter):
         count = 0
         for pattern in self.patterns:
             for line in txt_file:
@@ -81,7 +86,7 @@ class Disambiguator():
                         return True
         return False
 
-    def __punish_patterns(self, patterns, candidate, txt, p_filter):
+    def _punish_patterns(self, patterns, candidate, txt, p_filter):
         count = 0
         for pattern in patterns:
             for line in txt:
@@ -95,27 +100,32 @@ class Disambiguator():
     def drop_rows(self, drop_list):
         """Return alignment_df after drop_list indixes have beeen removed.
 
-        Args:
+        Args
+        -------
             drop_list(list of strings): indices/candidates that are to be
                                         dropped from alignments_dataframe.
 
-        Returns:
+        Returns
+        -------
             pandas dataFrame: alignments_dataframe after drop_list indixes
                               have beeen removed.
         """
         return self.alignments_df.drop(drop_list)
 
+    # pre alignment disambiguation:
     @staticmethod
     def create_non_con_dict(connector_list, tgt_path):
         """Show which of the non-connector occurences for every connector.
 
-        Args:
+        Args
+        -------
             connector_list(list of strings):
                 connectors for which the non-connector occurences
                 are to be found.
             tgt_path(str): directory of the file containing the connectors.
 
-        Returns:
+        Returns
+        -------
             tuple: containing two dictionaries. The first dictionary
                    has the structure connector: [non_connector occurences]
                    The second one contains how many occurrences there were
@@ -125,7 +135,9 @@ class Disambiguator():
         con_total_occs = {}
         try:
             with io.open(tgt_path, mode="r", encoding="utf-8") as txt_file:
-                for connector in connector_list:
+                for connector in tqdm(connector_list,
+                                      desc='Disambiguation',
+                                      total=len(connector_list)):
                     connector_occs = []
                     not_connectors[connector] = []
                     txt_file.seek(0)
@@ -152,27 +164,52 @@ class Disambiguator():
             logging.basicConfig(level=logging.ERROR)
             logging.error("ERROR: Could not find the given file")
 
+    @staticmethod
+    def percentage_of_non_connectors(non_con_dicts, csv_file_name=""):
+        """ """
+        not_connectors, con_total_occs = non_con_dicts
+        print("Percentage of non-connectors:\n")
+        csv_dict = {}
+        for key in con_total_occs:
+            print(f"{ key }: { (len(not_connectors[key])/con_total_occs[key])*100 } %\n")
+            csv_dict[key] = (len(not_connectors[key])/con_total_occs[key])*100
+        # write results into new csv_file
+        if csv_file_name != "":
+            file_name = '%s.csv' % csv_file_name
+            with open(file_name, 'w') as csv_file:
+                writer = csv.writer(csv_file)
+                for key, value in csv_dict.items():
+                    writer.writerow([key, value])
+
 
 def main():
     """Drop non-connector rows from alignments_df."""
+    """
     logging.basicConfig(level=logging.DEBUG)
-    disa = Disambiguator(pd.read_csv("naive.csv"))
+    disa = Disambiguator(pd.read_csv("results/naive/naive.csv"))
     logging.debug("Finished loading")
     can_list = disa.create_candidate_list()
-    dropped = disa.drop_rows(disa.disambiguate('europarl-v7.de-en.en',
+    dropped = disa.drop_rows(disa.disambiguate('de-en/europarl-v7.de-en.en',
                                                can_list, 21))
     dropped_sorted = dropped.sort_values("andererseits", "index",
                                          ascending=False)
     logging.debug("Finished disambiguating")
-    dropped.to_csv('dropped.csv')
-    # print(dropped_sorted)
+    dropped.to_csv('results/disambig/dropped.csv')
+    # logging.debug(dropped_sorted)
     # logging.debug(str(dropped_sorted.shape))
+    """
     """Create non_connector_dictionary."""
     non_con = Disambiguator.create_non_con_dict(['aber', 'doch', 'jedoch',
                                                  'allerdings', 'andererseits',
                                                  'hingegen'],
-                                                r"europarl-v7.de-en.de")
+<<<<<<< HEAD
+                                                "de-en/europarl-v7.de-en.de")
     print(non_con[0])
+    Disambiguator.percentage_of_non_connectors(non_con)
+=======
+                                                r"de-en/europarl-v7.de-en.de")
+    logging.debug(print(non_con[0]))
+>>>>>>> 194e6bb9f9a61fb6bce8176747719ea84582a87d
 
 
 if __name__ == "__main__":
